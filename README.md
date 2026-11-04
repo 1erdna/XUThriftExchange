@@ -5,6 +5,12 @@ Team: Denz Macasero, Andrei Nacaya, Dann Roa
 
 **Status: navigable mobile UI prototype; backend integration is not yet implemented.**
 
+## Try the working UI demo (browser)
+
+**[▶ Open XU ThriftExchange — Live UI Preview](https://htmlpreview.github.io/?https://github.com/1erdna/XUThriftExchange/blob/main/www/index.html)**
+
+Open the link on a phone or laptop. This third-party GitHub HTML preview displays the latest `www/index.html` from `main`; use a mobile-size browser window for the intended layout. The interface is navigable and uses **local demonstration data only**. Google/XU sign-in, email verification, reservations, and listings are simulations — no real student account or backend is connected. Do not enter real credentials.
+
 ## Implemented interface
 - Sign In, XU Email, verification preview, Home, Search/Browse, Item Details, Post Item, Reservation Confirmation, Saved Items, Profile, and My Posted Items.
 - Responsive layout, navigation, category filters, searchable sample listings, save/unsave, form validation, photo preview, demo reservation and mark-as-sold flows.
