@@ -2,7 +2,7 @@
 
 **Project:** XU ThriftExchange — ITCC 41-A  
 **Members:** Andrei Nacaya, Dann Roa, Denz Macasero  
-**Status:** Branches and responsibilities prepared. Actual feature implementation and team contributions are pending.
+**Status:** Feature branches and a dedicated `staging` integration branch are prepared. Actual feature implementation and team contributions are pending. The `main` branch is reserved for approved, stable releases.
 
 ## Milestone goal
 
@@ -19,12 +19,27 @@ Turn the Milestone 2 user interface into a working campus marketplace with real 
 | **Denz** | `feature/denz-search-filter` | Real database query and visible search/filter results for title, academic category, department/course and availability, including empty/error states. |
 | **Denz** | `feature/denz-reservations` | Real reservation requests, persisted status changes, conflicting reservation handling, confirmation and seller contact handoff. Use an atomic/transactional reservation operation. |
 
-Each feature must have its **own branch and its own Pull Request**. Authors must perform and commit their own actual work using their own GitHub accounts.
+Each feature must have its **own branch and its own Pull Request into `staging`**. Authors must perform and commit their own actual work using their own GitHub accounts.
+
+## Branching strategy (Milestone 3)
+
+```text
+feature/andrei-*  ── PR ──┐
+feature/dann-*    ── PR ──┼──> staging ── integration tests ── reviewed release PR ──> main
+feature/denz-*    ── PR ──┘
+```
+
+- **`main`: stable baseline.** Do not push directly or merge incomplete features. Leave it unchanged throughout development/testing until the group approves a tested release.
+- **`staging`: shared testing/integration.** Every feature PR targets `staging`. Resolve conflicts and run end-to-end tests here.
+- **`feature/<member>-<feature>`: individual contributions.** Each member commits using their own GitHub account and opens a distinct PR with tests/screenshots.
+- **Release:** Only after all agreed features pass staging checks, open a **separate** PR from `staging` to `main` for approval. Do not merge it automatically.
+
+For stricter enforcement, the repository administrator should enable branch protection/rules for `main` (require PR review, block direct pushes). This document establishes the process but does not itself enforce GitHub permissions.
 
 ## Recommended build order
 
-1. Andrei completes **Firebase setup** and opens PR; test and merge into `main`.
-2. Teammates update their feature branches from `main` before editing code and agree on shared data fields and API boundaries.
+1. Andrei completes **Firebase setup** and opens PR; test and merge into `staging`.
+2. Teammates update their feature branches from `staging` before editing code and agree on shared data fields and API boundaries.
 3. Dann completes **Item Listings**; Denz can develop **Search / Filter** against the agreed schema, then connect to real listing data.
 4. Dann implements listing ownership/status; Denz implements reservation transactions, coordinating item-status rules.
 5. Andrei completes supported campus Google/identity sign-in. Once merged, verify backend security rules using actual user identities.
@@ -34,20 +49,22 @@ Each feature must have its **own branch and its own Pull Request**. Authors must
 
 ## Contributor workflow
 
-Use your own GitHub account to clone, make changes, commit, push, and open a PR from your assigned feature branch to `main`.
+Use your own GitHub account to clone, make changes, commit, push, and open a PR from your assigned feature branch to **`staging`**.
 
 ```bash
 git clone https://github.com/1erdna/XUThriftExchange.git
 cd XUThriftExchange
 git fetch origin
 git switch feature/andrei-firebase-setup  # Replace with your own assigned branch
+# Before editing, incorporate the current staging baseline, e.g.:
+git merge origin/staging
 # Make and test your changes
 git add .
 git commit -m "feat(firebase): set up secure data access"
 git push -u origin HEAD
 ```
 
-Then open **Pull requests → New pull request** on GitHub. Select `base: main` and `compare: <your feature branch>`. In the PR description, provide:
+Then open **Pull requests → New pull request** on GitHub. Select **`base: staging`** and **`compare: <your feature branch>`**. In the PR description, provide:
 
 - What the feature changes and why it solves the approved problem
 - Screenshots or short video of its **actual behavior**
@@ -68,7 +85,8 @@ Then open **Pull requests → New pull request** on GitHub. Select `base: main` 
 
 - [ ] Branch names correspond to specific features and responsible team members
 - [ ] Each member's own commits are visible on GitHub
-- [ ] Separate pull requests show changed code, testing and review
+- [ ] Separate feature pull requests target `staging` and show changed code, testing and review
+- [ ] No direct feature merges or pushes into `main` before release approval
 - [ ] Implemented features work with data beyond a single browser-local demo
 - [ ] Application demonstrates core workflow: sign in → post item → search → reserve → see updated status
 - [ ] Progress report accurately distinguishes completed functionality from work still pending
