@@ -48,6 +48,34 @@ class FakeCollection{
  const created=await itemListings.createListing({formValues:good,currentUser:seller,firestore:db});
  assert.equal(created.status,'Available');
  assert.equal(created.sellerUid,seller.uid);
+ // A Spark-plan listing with an attached photo must not require Cloud Storage.
+ const jpegData='data:image/jpeg;base64,'+'A'.repeat(5000);
+ const photograph={type:'image/png',size:2048};
+ const withPhoto=await itemListings.createListing({
+   formValues:{...good,title:'Laboratory textbook'},currentUser:seller,
+   firestore:db,photoFile:photograph,photoEncoder:async()=>jpegData
+ });
+ assert.equal(withPhoto.image,jpegData);
+ assert.equal(db.docs('listings').get(withPhoto.id).image,jpegData);
+ await assert.rejects(()=>itemListings.createListing({
+   formValues:good,currentUser:seller,firestore:db,photoFile:photograph,
+   photoEncoder:async()=>('data:image/jpeg;base64,'+'A'.repeat(itemListings.MAX_INLINE_IMAGE_CHARS))
+ }),/too large/);
+ // Test the browser compressor's canvas/photo-handling path with lightweight stubs.
+ context.FileReader=class {
+   readAsDataURL(){this.result='data:image/png;base64,AAAA';this.onload();}
+ };
+ context.Image=class {
+   constructor(){this.naturalWidth=1200;this.naturalHeight=900;}
+   set src(value){this.onload();}
+ };
+ context.document={createElement:()=>({
+   width:0,height:0,
+   getContext:()=>({fillStyle:'',fillRect:()=>{},drawImage:()=>{}}),
+   toDataURL:()=>jpegData
+ })};
+ assert.equal(await itemListings.compressPhotoForFirestore(photograph),jpegData);
+
  const all=await itemListings.fetchListings({firestore:db});
  assert.equal(all.length,1);
  const mine=await itemStatus.getMyItems({currentUser:seller,firestore:db});
@@ -67,5 +95,5 @@ class FakeCollection{
  await itemStatus.updateItemStatus({listingId:created.id,newStatus:'Sold',currentUser:seller,firestore:db});
  assert.equal(db.docs('listings').get(created.id).status,'Sold');
  await assert.rejects(()=>reservations.createReservation({listingId:created.id,currentUser:buyer,firestore:db}),/unavailable/);
- console.log('PASS: parsing, listing validation/CRUD, owner-only status, search/filter, transaction and cancel smoke tests.');
+ console.log('PASS: listing CRUD, inline photo fallback/compression, ownership, search/filter, reservation/cancellation smoke tests.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
