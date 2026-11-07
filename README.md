@@ -15,7 +15,7 @@ ITCC 41-A · Mobile Applications Development
 ## Working features in code
 
 - Google SSO controller for browser Firebase Authentication, Xavier account checks, sign-out and session restoration (**requires Google sign-in enabled in Firebase Console**).
-- Firestore-compatible Item Listings: input validation, posting, photo upload and retrieval.
+- Firestore-compatible Item Listings: input validation, posting, retrieval and **small compressed JPEG thumbnails stored directly in listing documents** on the no-cost Spark plan. Cloud Storage is not required for these thumbnails.
 - Item Status: seller-only availability changes, with reservation safety.
 - Search and Filtering: keyword and category filtering on fetched Firestore listings.
 - Reservations: transactional reservation, duplicate protection and cancellation.
@@ -29,6 +29,12 @@ ITCC 41-A · Mobile Applications Development
 - **Andrei:** [Firebase Setup PR #5](https://github.com/1erdna/XUThriftExchange/pull/5) · [Google SSO PR #6](https://github.com/1erdna/XUThriftExchange/pull/6) · [UI Integration PR #7](https://github.com/1erdna/XUThriftExchange/pull/7)
 
 The PRs preserve feature commits from the respective contributors. They document uploaded/merged code, not proof that live Firebase authentication or Android testing has passed.
+
+## Item photos on the Spark plan
+
+XU ThriftExchange now compresses an attached JPG/PNG/WebP into a **small inline JPEG thumbnail** (up to 150,000 characters, approximately 110 KiB) and saves it in the Firestore listing's `image` field. This avoids the Firebase Storage Blaze-plan requirement for a **school demonstration**.
+
+This is **not a production image hosting strategy**: Firestore documents have size limits and storing images increases database reads, bandwidth, and indexing overhead. Use Cloud Storage or a suitable media hosting service for a production marketplace. The security rules in `firestore.rules` now cap the image string size; **republish that rule update in Firebase Console** before considering the live deployment secured.
 
 ## Run the browser preview
 
