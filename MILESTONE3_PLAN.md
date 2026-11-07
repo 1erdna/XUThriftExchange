@@ -2,7 +2,7 @@
 
 **Project:** XU ThriftExchange — ITCC 41-A  
 **Members:** Andrei Nacaya, Dann Roa, Denz Macasero  
-**Status:** Feature branches, an `integration` merging branch, and a separate `staging` testing branch are prepared. Actual feature implementation and team contributions are pending. The `main` branch is reserved for approved, stable releases.
+**Status (Nov 8, 2026):** All six primary feature modules and the UI wiring have been merged into `integration` via contributor pull requests #1–#7. GitHub Actions smoke tests passed. **Live Firebase project configuration, deployed rules, actual Google SSO, Android build, and multi-account acceptance tests remain incomplete.** The `main` branch remains the stable Milestone 2 baseline.
 
 ## Milestone goal
 
@@ -19,7 +19,7 @@ Turn the Milestone 2 user interface into a working campus marketplace with real 
 | **Denz** | `feature/denz-search-filter` | Real database query and visible search/filter results for title, academic category, department/course and availability, including empty/error states. |
 | **Denz** | `feature/denz-reservations` | Real reservation requests, persisted status changes, conflicting reservation handling, confirmation and seller contact handoff. Use an atomic/transactional reservation operation. |
 
-Each feature must have its **own branch and its own Pull Request into `integration`**. Authors must perform and commit their own actual work using their own GitHub accounts.
+Each feature has its **own branch and merged Pull Request into `integration`** (PRs #1–#6), plus a reviewed integration-wiring PR #7. Authors must perform and commit their own actual work using their own GitHub accounts.
 
 ## Branching strategy (Milestone 3)
 
