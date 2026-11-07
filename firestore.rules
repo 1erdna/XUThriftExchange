@@ -28,7 +28,7 @@ service cloud.firestore {
         && request.resource.data.course is string && request.resource.data.course.size() <= 50
         && request.resource.data.facebook is string && request.resource.data.phone is string
         && (request.resource.data.facebook.size() > 0 || request.resource.data.phone.size() > 0)
-        && request.resource.data.image is string && request.resource.data.seller is string
+        && request.resource.data.image is string && request.resource.data.image.size() <= 150000 && request.resource.data.seller is string
         && request.resource.data.createdAt is string && request.resource.data.updatedAt is string;
       allow update: if xuStudent() && onlyChanged(['status','reservationId','updatedAt']) &&
         request.resource.data.sellerUid == resource.data.sellerUid && (

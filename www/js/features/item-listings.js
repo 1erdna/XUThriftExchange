@@ -1,6 +1,7 @@
 (function (root) {
   "use strict";
   const MAX_IMAGE = 8 * 1024 * 1024;
+  const MAX_INLINE_IMAGE_CHARS = 150000; // ~110 KB JPEG thumbnail; well within Firestore's 1 MiB document limit.
   const CATEGORIES = ["Textbooks", "Uniforms", "Lab Gowns", "Equipment"];
   const CONDITIONS = ["Good", "Like New", "Fair"];
   const COLLECTION = "listings";
@@ -95,6 +96,58 @@
       );
     }
   }
+  // Free Spark-plan fallback: store a SMALL, compressed JPEG thumbnail with the
+  // Firestore listing document. This is for a school project, not a production
+  // replacement for Cloud Storage.
+  async function compressPhotoForFirestore(file) {
+    verifyFile(file);
+    if (typeof FileReader === "undefined" || typeof Image === "undefined" ||
+        typeof document === "undefined") {
+      throw new Error("Photo processing requires a browser with image and canvas support.");
+    }
+    const source = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Unable to read the selected photo."));
+      reader.readAsDataURL(file);
+    });
+    const picture = new Image();
+    await new Promise((resolve, reject) => {
+      picture.onload = resolve;
+      picture.onerror = () => reject(new Error("This photo cannot be opened. Try another JPG, PNG or WebP."));
+      picture.src = source;
+    });
+    const width = picture.naturalWidth || picture.width;
+    const height = picture.naturalHeight || picture.height;
+    if (!width || !height) throw new Error("The selected photo has invalid dimensions.");
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Image compression is not supported in this browser.");
+    for (const maxSide of [640, 480, 360, 260, 180]) {
+      const scale = Math.min(1, maxSide / Math.max(width, height));
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      context.fillStyle = "#ffffff"; // White backdrop for transparent PNGs.
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(picture, 0, 0, canvas.width, canvas.height);
+      for (const quality of [0.72, 0.54, 0.40, 0.28]) {
+        const jpeg = canvas.toDataURL("image/jpeg", quality);
+        if (jpeg.startsWith("data:image/jpeg;base64,") &&
+            jpeg.length <= MAX_INLINE_IMAGE_CHARS) {
+          return jpeg;
+        }
+      }
+    }
+    throw new Error("This photo cannot be compressed small enough. Try a simpler photo.");
+  }
+  function checkInlinePhoto(dataUrl) {
+    if (typeof dataUrl !== "string" ||
+        dataUrl.length > MAX_INLINE_IMAGE_CHARS ||
+        !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(dataUrl)) {
+      throw new Error("The photo thumbnail is invalid or too large.");
+    }
+    return dataUrl;
+  }
   function toItem(doc) {
     return { id: doc.id, ...doc.data() };
   }
@@ -102,36 +155,18 @@
     formValues,
     currentUser,
     firestore,
-    storage,
     photoFile,
+    photoEncoder = compressPhotoForFirestore,
   } = {}) {
     const sellerUid = assertUser(currentUser);
     if (!firestore || typeof firestore.collection !== "function")
       throw new Error("Firestore is not configured.");
     const clean = validateListing(formValues);
     verifyFile(photoFile);
-    let photoRef,
-      image = "";
-    if (photoFile) {
-      if (!storage || typeof storage.ref !== "function")
-        throw new Error(
-          "Firebase Storage is not configured for photo uploads.",
-        );
-      const extension = {
-        "image/jpeg": "jpg",
-        "image/png": "png",
-        "image/webp": "webp",
-      }[photoFile.type];
-      const token =
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      photoRef = storage
-        .ref()
-        .child(`listing-photos/${sellerUid}/${token}.${extension}`);
-      await photoRef.put(photoFile, { contentType: photoFile.type });
-      image = await photoRef.getDownloadURL();
-    }
+    // Firebase Storage is unavailable on Spark. Generate a compact JPG data URL
+    // and store it in the Firestore 'image' field alongside the listing instead.
+    // If compression fails, report the error rather than silently losing a photo.
+    const image = photoFile ? checkInlinePhoto(await photoEncoder(photoFile)) : "";
     const now = new Date().toISOString();
     const listing = {
       ...clean,
@@ -146,14 +181,8 @@
       createdAt: now,
       updatedAt: now,
     };
-    try {
-      const ref = await firestore.collection(COLLECTION).add(listing);
-      return { id: ref.id, ...listing, owner: true };
-    } catch (error) {
-      // Avoid retaining an orphaned upload if database insertion failed.
-      if (photoRef) await photoRef.delete().catch(() => {});
-      throw error;
-    }
+    const ref = await firestore.collection(COLLECTION).add(listing);
+    return { id: ref.id, ...listing, owner: true };
   }
   async function fetchListings({ firestore, status, limit = 100 } = {}) {
     if (!firestore || typeof firestore.collection !== "function")
@@ -174,5 +203,7 @@
     fetchListings,
     normalizeFacebook,
     normalizePhone,
+    compressPhotoForFirestore,
+    MAX_INLINE_IMAGE_CHARS,
   };
 })(typeof window !== "undefined" ? window : globalThis);
