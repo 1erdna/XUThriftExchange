@@ -91,7 +91,8 @@ function render(){let view;switch(currentScreen){case 'login':view=loginView();b
 app.innerHTML=view;
 const scrolling=app.querySelector('.app-page');if(scrolling)scrolling.scrollTop=0;}
 function toggleSave(id){if(model.saved.includes(id)){model.saved=model.saved.filter(x=>x!==id);toast('Removed from Saved Items.');}else{model.saved.push(id);toast('Saved for later.');}persist();render();}
-function reserve(id){const item=model.items.find(i=>i.id===id);if(!item||item.status!=='Available'||item.owner){toast('This item cannot be reserved.');return;}item.status='Reserved';model.reservations.push({itemId:id,createdAt:new Date().toISOString(),status:'Reserved'});persist();reservationItemId=id;navigate('reservation');}
+/* Milestone 3 TODO — Denz: implement secured, atomic reservation persistence. */
+function reserve(id){toast('Reservations are not implemented yet.');}
 function validFacebook(raw){if(!raw)return '';try{const full=/^https?:\/\//i.test(raw)?raw:'https://'+raw;const parsed=new URL(full);if(['facebook.com','www.facebook.com','m.facebook.com','fb.com','www.fb.com'].includes(parsed.hostname)&&parsed.pathname.length>1&&parsed.protocol==='https:')return parsed.href;}catch{}return null;}
 function validPhone(raw){if(!raw)return '';const compact=raw.replace(/[\s()-]/g,'');return /^(09\d{9}|\+639\d{9})$/.test(compact)?compact:null;}
 /* Milestone 3 TODO — Dann: implement Item Listings.
