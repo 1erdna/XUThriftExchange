@@ -93,16 +93,15 @@ function toggleSave(id){if(model.saved.includes(id)){model.saved=model.saved.fil
 function reserve(id){const item=model.items.find(i=>i.id===id);if(!item||item.status!=='Available'||item.owner){toast('This item cannot be reserved.');return;}item.status='Reserved';model.reservations.push({itemId:id,createdAt:new Date().toISOString(),status:'Reserved'});persist();reservationItemId=id;navigate('reservation');}
 function validFacebook(raw){if(!raw)return '';try{const full=/^https?:\/\//i.test(raw)?raw:'https://'+raw;const parsed=new URL(full);if(['facebook.com','www.facebook.com','m.facebook.com','fb.com','www.fb.com'].includes(parsed.hostname)&&parsed.pathname.length>1&&parsed.protocol==='https:')return parsed.href;}catch{}return null;}
 function validPhone(raw){if(!raw)return '';const compact=raw.replace(/[\s()-]/g,'');return /^(09\d{9}|\+639\d{9})$/.test(compact)?compact:null;}
-function addItem(form){const data=new FormData(form);const title=String(data.get('title')||'').trim();const description=String(data.get('description')||'').trim();const price=Number(data.get('price'));
-const fb=validFacebook(String(data.get('facebook')||'').trim());const phone=validPhone(String(data.get('phone')||'').trim());let error='';
-if(title.length<4)error='Enter an item name with at least 4 characters.';
-else if(description.length<10)error='Describe the item in at least 10 characters.';
-else if(!Number.isFinite(price)||price<0||price>99999)error='Enter a valid non-negative price.';
-else if(fb===null)error='Enter a valid Facebook profile URL (facebook.com/yourprofile).';
-else if(phone===null)error='Enter a valid Philippine mobile phone number.';
-else if(!fb&&!phone)error='Enter at least one seller contact method: Facebook or phone.';
-if(error){const node=document.getElementById('post-error');if(node){node.hidden=false;node.textContent=error;}toast('Please check your form.');return;}
-const id='demo-'+Date.now().toString(36);model.items.unshift({id,title,description,price,condition:String(data.get('condition')),category:String(data.get('category')),course:String(data.get('course')||'General').trim()||'General',facebook:fb||'',phone:phone||'',image:imageUpload||'assets/books.jpg',status:'Available',seller:'Demo Student',owner:true});imageUpload=null;persist();navigate('myitems');toast('Demo listing published locally.');}
+/* Milestone 3 TODO — Dann: implement Item Listings.
+ * This feature has intentionally NO posting behavior until Dann's own code
+ * validates input, stores listings and media in Firebase, and retrieves records.
+ */
+function addItem(form){
+ const error=document.getElementById('post-error');
+ if(error){error.hidden=false;error.textContent='Item Listings not yet implemented (Milestone 3).';}
+ toast('Item Listings is not implemented yet.');
+}
 function previewPhoto(file){if(!file)return;if(!file.type.startsWith('image/')){toast('Please select an image file.');return;}if(file.size>8*1024*1024){toast('Choose an image smaller than 8 MB.');return;}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,700/Math.max(img.width,img.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);imageUpload=canvas.toDataURL('image/jpeg',.68);const drop=document.querySelector('.photo-drop');if(drop){drop.querySelector('img')?.remove();const preview=document.createElement('img');preview.src=imageUpload;preview.alt='Selected item preview';drop.appendChild(preview);}toast('Photo ready for local demo post.');};img.src=String(reader.result);};reader.readAsDataURL(file);}
 function sellerContact(kind,id){const item=model.items.find(i=>i.id===id);if(!item)return;const value=kind==='facebook'?item.facebook:item.phone;if(!value){toast('No '+kind+' contact listed.');return;}
 if(kind==='facebook'){const url=validFacebook(value);if(url)window.open(url,'_blank','noopener,noreferrer');else toast('Facebook address cannot be opened.');}
