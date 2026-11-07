@@ -4,22 +4,34 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0D376A">
-  <meta name="description" content="XU ThriftExchange — a mobile campus marketplace UI prototype for second-hand academic essentials.">
-  <title>XU ThriftExchange · Milestone 2 UI Build</title>
+  <meta name="description" content="XU ThriftExchange — a campus marketplace with Milestone 3 Firebase-ready functionality.">
+  <title>XU ThriftExchange · Milestone 3</title>
   <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <main class="preview-stage">
-    <div class="stage-heading" aria-hidden="true"><span class="stage-mark">XU</span><span>THRIFTEXCHANGE <small>Milestone 2 · UI demonstration</small></span></div>
+    <div class="stage-heading" aria-hidden="true"><span class="stage-mark">XU</span><span>THRIFTEXCHANGE <small>Milestone 3 · Core functionality</small></span></div>
     <section class="phone-frame" aria-label="XU ThriftExchange mobile application preview">
       <div class="app-shell" id="app" aria-live="off"></div>
     </section>
-    <p class="stage-caption">Screen layout optimized for mobile phones · All actions use local demonstration data.</p>
+    <p class="stage-caption">Mobile campus marketplace · Firebase-powered when configured; otherwise clearly labeled local demo.</p>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   <div id="dialog-root"></div>
+  <!-- Firebase compat SDK: loaded in order, before core, features, and app. -->
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-storage-compat.js" defer></script>
+  <script src="js/firebase-config.js" defer></script>
+  <script src="js/firebase-core.js" defer></script>
+  <script src="js/google-sso.js" defer></script>
+  <script src="js/features/item-listings.js" defer></script>
+  <script src="js/features/item-status.js" defer></script>
+  <script src="js/features/search-filter.js" defer></script>
+  <script src="js/features/reservations.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>
 </html>

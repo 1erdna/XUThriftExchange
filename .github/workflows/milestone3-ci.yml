@@ -1,0 +1,25 @@
+name: Milestone 3 JavaScript Tests
+on:
+  push:
+    branches:
+      - integration
+      - staging
+      - main
+      - "feature/**"
+  pull_request:
+    branches:
+      - integration
+      - staging
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
+        run: find www/js -type f -name '*.js' -exec node --check '{}' \;
+      - name: Run Milestone 3 feature smoke tests
+        run: npm test
