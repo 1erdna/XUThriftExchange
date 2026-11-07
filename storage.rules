@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function xuStudent() {
+      return request.auth != null && request.auth.token.email_verified == true &&
+        request.auth.token.firebase.sign_in_provider == 'google.com' &&
+        request.auth.token.email.matches('^[^@]+@(my|g)\\.xu\\.edu\\.ph$');
+    }
+    match /listing-photos/{ownerUid}/{photoName} {
+      allow read: if xuStudent();
+      allow write: if xuStudent() &&
+        request.auth.uid == ownerUid &&
+        request.resource != null && request.resource.size < 8 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+  }
+}
