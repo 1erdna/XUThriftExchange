@@ -134,18 +134,62 @@ function render(){let view;switch(currentScreen){case 'login':view=loginView();b
 app.innerHTML=view;
 const scrolling=app.querySelector('.app-page');if(scrolling)scrolling.scrollTop=0;}
 function toggleSave(id){if(model.saved.includes(id)){model.saved=model.saved.filter(x=>x!==id);toast('Removed from Saved Items.');}else{model.saved.push(id);toast('Saved for later.');}persist();render();}
-/* Milestone 3 TODO — Denz: implement secured, atomic reservation persistence. */
-function reserve(id){toast('Reservations are not implemented yet.');}
+async function reserve(id){
+ const item=model.items.find(i=>i.id===id);
+ if(!item||item.status!=='Available'||item.owner){toast('This item cannot be reserved.');return;}
+ if(cloudMode){
+  if(!cloudUser){toast('Sign in to reserve an item.');return;}
+  try{
+   const result=await features.reservations.createReservation({listingId:id,currentUser:cloudUser,firestore:backend.firestore});
+   model.reservations.push({id:result.id,itemId:id,createdAt:result.createdAt,status:'Reserved'});
+   reservationItemId=id;
+   await loadCloudListings();
+   navigate('reservation');
+   toast('Reservation recorded in Firebase.');
+  }catch(error){toast(error.message||'Could not reserve the item.');}
+  return;
+ }
+ item.status='Reserved';model.reservations.push({itemId:id,createdAt:new Date().toISOString(),status:'Reserved'});persist();reservationItemId=id;navigate('reservation');
+}
+async function markItemSold(id){
+ const item=model.items.find(i=>i.id===id);
+ if(!item||!item.owner){toast('Only the seller may change this item.');return;}
+ if(cloudMode){
+  try{
+   await features.itemStatus.updateItemStatus({listingId:id,newStatus:'Sold',currentUser:cloudUser,firestore:backend.firestore});
+   await loadCloudListings();toast('Item marked as Sold in Firebase.');
+  }catch(error){toast(error.message||'Could not change status.');}
+  return;
+ }
+ item.status='Sold';persist();render();toast('Item marked as Sold locally.');
+}
 function validFacebook(raw){if(!raw)return '';try{const full=/^https?:\/\//i.test(raw)?raw:'https://'+raw;const parsed=new URL(full);if(['facebook.com','www.facebook.com','m.facebook.com','fb.com','www.fb.com'].includes(parsed.hostname)&&parsed.pathname.length>1&&parsed.protocol==='https:')return parsed.href;}catch{}return null;}
 function validPhone(raw){if(!raw)return '';const compact=raw.replace(/[\s()-]/g,'');return /^(09\d{9}|\+639\d{9})$/.test(compact)?compact:null;}
-/* Milestone 3 TODO — Dann: implement Item Listings.
- * This feature has intentionally NO posting behavior until Dann's own code
- * validates input, stores listings and media in Firebase, and retrieves records.
- */
-function addItem(form){
- const error=document.getElementById('post-error');
- if(error){error.hidden=false;error.textContent='Item Listings not yet implemented (Milestone 3).';}
- toast('Item Listings is not implemented yet.');
+async function addItem(form){
+ if(cloudMode){
+  if(!cloudUser){toast('Sign in before posting an item.');return;}
+  const errorNode=document.getElementById('post-error');
+  try{
+   const formValues=Object.fromEntries(new FormData(form).entries());
+   const photoFile=form.elements.photo?.files?.[0];
+   await features.itemListings.createListing({formValues,currentUser:cloudUser,firestore:backend.firestore,storage:backend.storage,photoFile:photoFile?.size?photoFile:null});
+   imageUpload=null;
+   await loadCloudListings();
+   navigate('myitems');
+   toast('Item published to the shared marketplace.');
+  }catch(error){if(errorNode){errorNode.hidden=false;errorNode.textContent=error.message||'Could not publish listing.';}toast('Could not publish listing.');}
+  return;
+ }
+ const data=new FormData(form);const title=String(data.get('title')||'').trim();const description=String(data.get('description')||'').trim();const price=Number(data.get('price'));
+ const fb=validFacebook(String(data.get('facebook')||'').trim());const phone=validPhone(String(data.get('phone')||'').trim());let error='';
+ if(title.length<4)error='Enter an item name with at least 4 characters.';
+ else if(description.length<10)error='Describe the item in at least 10 characters.';
+ else if(!Number.isFinite(price)||price<0||price>99999)error='Enter a valid non-negative price.';
+ else if(fb===null)error='Enter a valid Facebook profile URL (facebook.com/yourprofile).';
+ else if(phone===null)error='Enter a valid Philippine mobile phone number.';
+ else if(!fb&&!phone)error='Enter at least one seller contact method: Facebook or phone.';
+ if(error){const node=document.getElementById('post-error');if(node){node.hidden=false;node.textContent=error;}toast('Please check your form.');return;}
+ const id='demo-'+Date.now().toString(36);model.items.unshift({id,title,description,price,condition:String(data.get('condition')),category:String(data.get('category')),course:String(data.get('course')||'General').trim()||'General',facebook:fb||'',phone:phone||'',image:imageUpload||'assets/books.jpg',status:'Available',seller:'Demo Student',owner:true});imageUpload=null;persist();navigate('myitems');toast('Demo listing published locally.');
 }
 function previewPhoto(file){if(!file)return;if(!file.type.startsWith('image/')){toast('Please select an image file.');return;}if(file.size>8*1024*1024){toast('Choose an image smaller than 8 MB.');return;}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,700/Math.max(img.width,img.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);imageUpload=canvas.toDataURL('image/jpeg',.68);const drop=document.querySelector('.photo-drop');if(drop){drop.querySelector('img')?.remove();const preview=document.createElement('img');preview.src=imageUpload;preview.alt='Selected item preview';drop.appendChild(preview);}toast('Photo ready for local demo post.');};img.src=String(reader.result);};reader.readAsDataURL(file);}
 function sellerContact(kind,id){const item=model.items.find(i=>i.id===id);if(!item)return;const value=kind==='facebook'?item.facebook:item.phone;if(!value){toast('No '+kind+' contact listed.');return;}
@@ -163,7 +207,7 @@ case 'category':selectedCategory=node.dataset.category;render();return;
 case 'reserve':reserve(id);return;
 case 'facebook':sellerContact('facebook',id);return;
 case 'phone':sellerContact('phone',id);return;
-case 'mark-sold':{ /* Milestone 3 TODO — Dann: implement owner-verified persistent status updates. */ toast('Item Status is not implemented yet.');return;}
+case 'mark-sold':void markItemSold(id);return;
 case 'signout':signOut();return;
 case 'account-info':modal('Account integration pending','This is a local UI demonstration. A production build will use Google sign-in (supported Android flow) and university-eligibility checks. The preview does not access or verify Google accounts.',[{text:'Got it',action:'close-modal',primary:true}]);return;
 case 'confirm-reset':modal('Reset the demo?','This clears locally saved sample bookmarks, reservations, posts, and demo sessions. No online data will be affected.',[{text:'Reset local demo',action:'reset-demo',primary:true},{text:'Cancel',action:'close-modal'}]);return;
