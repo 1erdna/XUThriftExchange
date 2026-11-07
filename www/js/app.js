@@ -7,6 +7,13 @@
 (()=>{
 'use strict';
 const STORAGE='xuThriftExchange_milestone2_demo_v1';
+const backend=window.XUThriftBackend||{ready:false};
+const features=window.XUThriftFeatures||{};
+const cloudMode=!!backend.ready;
+let cloudUser=null;
+let cloudSearchResults=null;
+let searchGeneration=0;
+let searchTimer=null;
 const app=document.getElementById('app');
 const toastElement=document.getElementById('toast');
 const dialogRoot=document.getElementById('dialog-root');
@@ -19,6 +26,7 @@ const initialItems=[
 const emptyModel=()=>({demoSignedIn:false,accountEmail:'',items:structuredClone(initialItems),saved:[],reservations:[]});
 function loadModel(){try{const raw=localStorage.getItem(STORAGE);if(!raw)return emptyModel();const parsed=JSON.parse(raw);if(!Array.isArray(parsed.items)||!Array.isArray(parsed.saved))return emptyModel();return {...emptyModel(),...parsed};}catch{return emptyModel();}}
 let model=loadModel();
+if(cloudMode){model=emptyModel();model.items=[];model.demoSignedIn=false;model.accountEmail='';model.saved=[];}
 let currentScreen=model.demoSignedIn?'home':'login';
 let selectedCategory='All';
 let searchQuery='';
@@ -29,7 +37,10 @@ let emailTyped='';
 let imageUpload=null;
 let toastTimeout=null;
 const categories=['All','Textbooks','Uniforms','Lab Gowns','Equipment'];
-function persist(){try{localStorage.setItem(STORAGE,JSON.stringify(model));}catch(err){console.warn('Demo save unavailable:',err);toast('Browser storage is full; this change may not persist.');}}
+function persist(){try{
+if(cloudMode){if(cloudUser)localStorage.setItem('xu-m3-saved-'+cloudUser.uid,JSON.stringify(model.saved));return;}
+localStorage.setItem(STORAGE,JSON.stringify(model));
+}catch(err){console.warn('Browser saved-item storage unavailable:',err);toast('Browser storage is full; saved items might not persist.');}}
 function h(value){return String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function peso(p){return Number(p)===0?'Free':'₱'+Number(p||0).toLocaleString('en-PH');}
 function icon(name){const paths={
@@ -65,10 +76,10 @@ function page(html,{nav=null,extraClass=''}={}){return statusBar()+'<div class="
 function toast(msg){toastElement.textContent=msg;toastElement.classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>toastElement.classList.remove('visible'),2700);}
 function modal(title,paragraph,actions){dialogRoot.innerHTML='<div class="dialog-backdrop" data-action="close-modal"><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><h2 id="dialog-title">'+h(title)+'</h2><p>'+paragraph+'</p><div class="stack-actions">'+actions.map(a=>'<button class="'+(a.primary?'primary-btn':'secondary-btn')+' wide-btn" data-action="'+h(a.action)+'">'+h(a.text)+'</button>').join('')+'</div></section></div>';}
 function closeModal(){dialogRoot.innerHTML='';}
-function navigate(next,{push=true}={}){const protectedScreens=['home','search','details','post','reservation','saved','profile','myitems'];if(!model.demoSignedIn&&protectedScreens.includes(next))next='login';if(next==='details'&&currentScreen!=='details')detailOrigin=currentScreen;currentScreen=next;if(push){try{history.pushState({screen:next},'',location.pathname+'#'+next);}catch{}}render();}
-function demoLogin(){model.demoSignedIn=true;model.accountEmail=emailTyped||'demo.student@g.xu.edu.ph';persist();closeModal();navigate('home');toast('Demo session started — no real Google sign-in performed.');}
+function navigate(next,{push=true}={}){if(cloudMode&&['email','verify'].includes(next))next='login';const protectedScreens=['home','search','details','post','reservation','saved','profile','myitems'];if(!model.demoSignedIn&&protectedScreens.includes(next))next='login';if(next==='details'&&currentScreen!=='details')detailOrigin=currentScreen;currentScreen=next;if(push){try{history.pushState({screen:next},'',location.pathname+'#'+next);}catch{}}render();}
+function demoLogin(){if(cloudMode){toast('Use real Google sign-in.');return;}model.demoSignedIn=true;model.accountEmail=emailTyped||'demo.student@g.xu.edu.ph';persist();closeModal();navigate('home');toast('Demo session started — no real Google sign-in performed.');}
 function signOut(){model.demoSignedIn=false;model.accountEmail='';persist();navigate('login');toast('Signed out of the local demonstration.');}
-function resetDemo(){model=emptyModel();selectedCategory='All';searchQuery='';imageUpload=null;persist();closeModal();navigate('login');toast('Local demonstration data reset.');}
+function resetDemo(){if(cloudMode){toast('Online data cannot be reset from this device.');return;}model=emptyModel();selectedCategory='All';searchQuery='';imageUpload=null;persist();closeModal();navigate('login');toast('Local demonstration data reset.');}
 function loginView(){return page('<div class="login-page"><div class="login-brand"><div class="login-mark">XU</div><h1>ThriftExchange</h1><p class="subhead">Trade smarter. Waste less.</p><p class="intro">A campus marketplace for pre-loved books, uniforms, and academic essentials.</p></div><div class="login-actions"><button class="pill-button" data-action="google-demo"><span class="google-g" aria-hidden="true">G</span>Continue with Google</button><button class="pill-button" data-action="nav" data-page="email">'+icon('mail')+'Continue with XU email</button><p class="login-disclaimer"><strong>Milestone 2 UI preview.</strong> Sign-in is simulated; no Google or university account is accessed.</p><p class="login-disclaimer">Only eligible XU accounts will be allowed in the final application.</p></div></div>');}
 function emailView(){return page('<div class="verify-wrap">'+brand()+'<h1>Continue with XU email.</h1><p>Use your institutional email for the planned passwordless alternative. You will not be asked for your Gmail password.</p><form id="email-form"><div class="form-field"><label for="institution-email">XU institutional email</label><input id="institution-email" name="email" class="form-control" type="email" autocomplete="email" placeholder="name@my.xu.edu.ph" value="'+h(emailTyped)+'" required></div><p class="form-hint">Demo validation checks the email format only. A verification email is <strong>not actually sent</strong> during Milestone 2.</p><button class="primary-btn wide-btn" style="margin-top:19px" type="submit">Continue to verification preview '+icon('arrow')+'</button></form><div class="bottom-actions"><button class="secondary-btn wide-btn" data-action="nav" data-page="login">'+icon('back')+' Back to sign-in</button></div></div>');}
 function verifyView(){return page('<div class="verify-wrap">'+brand()+'<h1>Institutional verification</h1><p>The final application will verify an eligible university identity before granting campus marketplace access.</p><div class="info-box"><strong>Demo email:</strong> '+h(emailTyped||'demo.student@g.xu.edu.ph')+'<br><strong>Current milestone:</strong> UI navigation only.<br><strong>Not yet implemented:</strong> Email link delivery, ownership verification, and Firebase authentication.</div><div class="bottom-actions stack-actions"><button class="primary-btn" data-action="demo-login">Continue with demo account '+icon('arrow')+'</button><button class="secondary-btn" data-action="nav" data-page="login">Back to sign-in</button></div></div>');}
