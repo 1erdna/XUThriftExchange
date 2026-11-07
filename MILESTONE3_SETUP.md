@@ -8,7 +8,7 @@ This repository now contains the Firebase Web app configuration for project **`x
 2. **Completed in code:** The public Firebase Web app configuration was added to `www/js/firebase-config.js`. It contains no service-account secret. Never commit private keys.
 3. **Still required:** Enable **Authentication → Sign-in method → Google**. Set a support email.
 4. **Still required:** Under **Authentication → Settings → Authorized domains**, add the exact domain used to serve your browser preview. For localhost, test from `http://localhost:8080` (ensure the applicable domain is authorized). A GitHub HTML preview proxy may not be supported by OAuth.
-5. **Still required:** Enable **Cloud Firestore** and **Cloud Storage**. Publish the provided `firestore.rules` and `storage.rules` using Firebase CLI or the Console. Verify rule behavior with the Emulator Suite before allowing real users.
+5. **Partially complete:** Cloud Firestore has been created and the initial rules were pasted; publish or update the **latest** `firestore.rules` from `staging` to enforce a 150,000-character image limit. **Firebase Storage is not required** for small demo photos because the app stores compressed JPEG thumbnails directly with listing documents. Cloud Storage remains unavailable on Spark.
 6. **Still required for rules deployment:** Install Firebase CLI and run `firebase login`, then `firebase use --add`, then `firebase deploy --only firestore:rules,storage`. Select the correct project before deploying.
 7. For browser testing, serve the app from its `www` directory: `python -m http.server 8080 -d www`. The CDN-based compat SDK needs internet access.
 8. Sign in using a **verified Google account whose actual Firebase token email ends with** `@my.xu.edu.ph` or `@g.xu.edu.ph`. Confirm those account domains are approved by XU's IT office and use actual Google authentication.
@@ -26,7 +26,9 @@ This repository now contains the Firebase Web app configuration for project **`x
 - [ ] Buyer/seller can cancel correctly and listing becomes available again
 - [ ] A user cannot change the status of someone else's listing
 - [ ] A seller can mark an unreserved available item as Sold
-- [ ] Invalid and oversized photo uploads are rejected by the client and Storage rules
+- [ ] Valid attached JPG/PNG/WebP is compressed to a small JPEG thumbnail in Firestore and appears in another user's listing card
+- [ ] Unsupported files and oversized thumbnails are rejected; latest Firestore image-size rule is published
+- [ ] Upgrade to Storage-backed photos only if later needed (Blaze plan and billing required)
 - [ ] Web console is clear of errors, all test cases pass on the actual configured Firebase project
 - [ ] Integrate features through reviewed pull requests, then test on `staging`
 - [ ] Android APK built and tested on a device if the professor requires an installable app
@@ -40,3 +42,7 @@ The professor requires the working app, demonstrations of core features, the upd
 - Both Firestore and Storage rules restrict access to verified Google sign-in with XU address domains. Test rule compilation and authorization with emulators before production deployment.
 - Never trust a user-input email field or an email suffix alone as proof of identity.
 - Do not merge untested code to `main`.
+
+## Why this project uses Firestore photo thumbnails
+
+Cloud Storage for Firebase requires a Blaze billing plan. For a limited academic Milestone 3 demonstration, a small compressed inline JPEG thumbnail (maximum 150,000 characters) is stored in the `listings.image` string field. The latest repository `firestore.rules` limits that field size; copy the updated rules to Firebase Console and publish them. **Do not attempt to upload full-resolution photographs to Firestore.** Once the app grows beyond the classroom demo, move images to a purpose-built storage service and store only their URLs in Firestore.
