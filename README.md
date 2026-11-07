@@ -5,7 +5,7 @@ ITCC 41-A · Mobile Applications Development
 
 ## Project status
 
-**Milestone 3 source code has been integrated and passes automated mocked-database tests.** The project is **NOT YET a verified live multi-user application**: it still needs an actual Firebase project configuration, deployed security rules, university-approved Google authentication, and tests using real student accounts. Android/Cordova Google sign-in and installable APK build also remain unverified.
+**Milestone 3 source code has been integrated and passes automated mocked-database tests.** The project is **NOT YET a verified live multi-user application**: the Firebase Web configuration is now entered, but it still needs deployed security rules, enabled services, university-approved Google authentication, and tests using real student accounts. Android/Cordova Google sign-in and installable APK build also remain unverified.
 
 - Stable Milestone 2 preview: [`main`](https://github.com/1erdna/XUThriftExchange/tree/main)
 - Integrated Milestone 3 code: [`integration`](https://github.com/1erdna/XUThriftExchange/tree/integration)
@@ -14,7 +14,7 @@ ITCC 41-A · Mobile Applications Development
 
 ## Working features in code
 
-- Google SSO controller for browser Firebase Authentication, Xavier account checks, sign-out and session restoration (**requires Firebase Web configuration**).
+- Google SSO controller for browser Firebase Authentication, Xavier account checks, sign-out and session restoration (**requires Google sign-in enabled in Firebase Console**).
 - Firestore-compatible Item Listings: input validation, posting, photo upload and retrieval.
 - Item Status: seller-only availability changes, with reservation safety.
 - Search and Filtering: keyword and category filtering on fetched Firestore listings.
@@ -36,7 +36,7 @@ The PRs preserve feature commits from the respective contributors. They document
 python -m http.server 8080 -d www
 ```
 
-Open **http://localhost:8080**. If `www/js/firebase-config.js` is blank, the app clearly operates in local demo mode (without real login or shared database). After you register a Firebase Web app, fill in the configuration and enable/deploy the services as described in [MILESTONE3_SETUP.md](MILESTONE3_SETUP.md). Do **not** enter real account passwords into demo forms.
+Open **http://localhost:8080**. The Firebase Web configuration for project `xuthriftexchange` has been entered. The browser will now attempt real Firebase Authentication. **A config alone does not establish working sign-in, create Firestore/Storage databases, or deploy rules.** Complete the service setup in [MILESTONE3_SETUP.md](MILESTONE3_SETUP.md). To use local demo mode, use the earlier Milestone 2 `main` branch instead. Do **not** enter real account passwords into demo forms.
 
 Run the local feature checks:
 

@@ -1,16 +1,16 @@
 # XU ThriftExchange — Milestone 3 Setup and Acceptance Tests
 
-This repository contains the Firebase/SSO **implementation foundation**, not a pre-configured Firebase project. **Never claim the live project is working until the following tests pass.**
+This repository now contains the Firebase Web app configuration for project **`xuthriftexchange`**, together with a Firebase/SSO implementation foundation. The Firebase services and rules have **not** been verified or deployed through this repository. **Never claim the live project is working until the following tests pass.**
 
 ## Firebase Console setup (Andrei)
 
-1. Open [Firebase Console](https://console.firebase.google.com/) and create a project named for XU ThriftExchange.
-2. Register a **Web** app. Copy its **public web configuration** into `www/js/firebase-config.js`. Web config identifiers are not admin secrets; never commit service-account keys.
-3. Enable **Authentication → Sign-in method → Google**. Set a support email.
-4. Under **Authentication → Settings → Authorized domains**, add the exact domain used to serve your browser preview. For localhost, test from `http://localhost:8080` (ensure the applicable domain is authorized). A GitHub HTML preview proxy may not be supported by OAuth.
-5. Enable **Cloud Firestore** and **Cloud Storage**. Publish the provided `firestore.rules` and `storage.rules` using Firebase CLI or the Console. Verify rule behavior with the Emulator Suite before allowing real users.
-6. Install Firebase CLI and run `firebase login`, then `firebase use --add`, then `firebase deploy --only firestore:rules,storage`. Select the correct project before deploying.
-7. Serve the app from its `www` directory: `python -m http.server 8080 -d www`. The CDN-based compat SDK needs internet access.
+1. **Completed:** A Firebase project identified as `xuthriftexchange` was provided by the project owner.
+2. **Completed in code:** The public Firebase Web app configuration was added to `www/js/firebase-config.js`. It contains no service-account secret. Never commit private keys.
+3. **Still required:** Enable **Authentication → Sign-in method → Google**. Set a support email.
+4. **Still required:** Under **Authentication → Settings → Authorized domains**, add the exact domain used to serve your browser preview. For localhost, test from `http://localhost:8080` (ensure the applicable domain is authorized). A GitHub HTML preview proxy may not be supported by OAuth.
+5. **Still required:** Enable **Cloud Firestore** and **Cloud Storage**. Publish the provided `firestore.rules` and `storage.rules` using Firebase CLI or the Console. Verify rule behavior with the Emulator Suite before allowing real users.
+6. **Still required for rules deployment:** Install Firebase CLI and run `firebase login`, then `firebase use --add`, then `firebase deploy --only firestore:rules,storage`. Select the correct project before deploying.
+7. For browser testing, serve the app from its `www` directory: `python -m http.server 8080 -d www`. The CDN-based compat SDK needs internet access.
 8. Sign in using a **verified Google account whose actual Firebase token email ends with** `@my.xu.edu.ph` or `@g.xu.edu.ph`. Confirm those account domains are approved by XU's IT office and use actual Google authentication.
 9. **Cordova/Android limitation:** the browser popup OAuth flow is not a supported Android WebView implementation. Integrate a supported native Google identity SDK, obtain the Google ID token, and call Firebase `signInWithCredential` before claiming an Android SSO build. Firebase's older Cordova OAuth flows were affected by the 2025 Dynamic Links shutdown.
 
