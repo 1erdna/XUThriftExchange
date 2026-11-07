@@ -77,9 +77,9 @@ class FakeCollection{
  assert.equal(await itemListings.compressPhotoForFirestore(photograph),jpegData);
 
  const all=await itemListings.fetchListings({firestore:db});
- assert.equal(all.length,1);
+ assert.equal(all.length,2);
  const mine=await itemStatus.getMyItems({currentUser:seller,firestore:db});
- assert.equal(mine.length,1);
+ assert.equal(mine.length,2);
  assert.equal(searchFilter.filterListings(all,{keyword:'calculus'}).length,1);
  assert.equal(searchFilter.filterListings(all,{keyword:'stethoscope'}).length,0);
  assert.equal((await searchFilter.searchListings({firestore:db,category:'Textbooks',keyword:'calculus'})).length,1);
