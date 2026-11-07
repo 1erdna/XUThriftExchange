@@ -119,7 +119,7 @@ case 'category':selectedCategory=node.dataset.category;render();return;
 case 'reserve':reserve(id);return;
 case 'facebook':sellerContact('facebook',id);return;
 case 'phone':sellerContact('phone',id);return;
-case 'mark-sold':{const item=model.items.find(i=>i.id===id);if(item&&item.owner){item.status='Sold';persist();render();toast('Item marked as Sold locally.');}return;}
+case 'mark-sold':{ /* Milestone 3 TODO — Dann: implement owner-verified persistent status updates. */ toast('Item Status is not implemented yet.');return;}
 case 'signout':signOut();return;
 case 'account-info':modal('Account integration pending','This is a local UI demonstration. A production build will use Google sign-in (supported Android flow) and university-eligibility checks. The preview does not access or verify Google accounts.',[{text:'Got it',action:'close-modal',primary:true}]);return;
 case 'confirm-reset':modal('Reset the demo?','This clears locally saved sample bookmarks, reservations, posts, and demo sessions. No online data will be affected.',[{text:'Reset local demo',action:'reset-demo',primary:true},{text:'Cancel',action:'close-modal'}]);return;
