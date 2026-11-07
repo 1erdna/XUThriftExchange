@@ -1,66 +1,53 @@
-# XU ThriftExchange — Milestone 2 Working UI
+# XU ThriftExchange — Milestone 3 Core Functionality
 
 ITCC 41-A · Mobile Applications Development  
-Team: Denz Macasero, Andrei Nacaya, Dann Roa
+**Team:** Andrei Nacaya · Dann Roa · Denz Macasero
 
-**Status: navigable mobile UI prototype; backend integration is not yet implemented.**
+## Project status
 
-## Try the working UI demo (browser)
+**Milestone 3 source code has been integrated and passes automated mocked-database tests.** The project is **NOT YET a verified live multi-user application**: it still needs an actual Firebase project configuration, deployed security rules, university-approved Google authentication, and tests using real student accounts. Android/Cordova Google sign-in and installable APK build also remain unverified.
 
-**[▶ Open XU ThriftExchange — Live UI Preview](https://htmlpreview.github.io/?https://github.com/1erdna/XUThriftExchange/blob/main/www/index.html)**
+- Stable Milestone 2 preview: [`main`](https://github.com/1erdna/XUThriftExchange/tree/main)
+- Integrated Milestone 3 code: [`integration`](https://github.com/1erdna/XUThriftExchange/tree/integration)
+- Milestone 3 acceptance testing: [`staging`](https://github.com/1erdna/XUThriftExchange/tree/staging)
+- **[Milestone 3 setup and testing checklist](MILESTONE3_SETUP.md)**
 
-Open the link on a phone or laptop. This third-party GitHub HTML preview displays the latest `www/index.html` from `main`; use a mobile-size browser window for the intended layout. The interface is navigable and uses **local demonstration data only**. Google/XU sign-in, email verification, reservations, and listings are simulations — no real student account or backend is connected. Do not enter real credentials.
+## Working features in code
 
-## Implemented interface
-- Sign In, XU Email, verification preview, Home, Search/Browse, Item Details, Post Item, Reservation Confirmation, Saved Items, Profile, and My Posted Items.
-- Responsive layout, navigation, category filters, searchable sample listings, save/unsave, form validation, photo preview, demo reservation and mark-as-sold flows.
-- Navy/gold/white visual style based on Milestone 1 screens.
-- Local demo data and browser-local saved state; returning demo sessions can be restored.
+- Google SSO controller for browser Firebase Authentication, Xavier account checks, sign-out and session restoration (**requires Firebase Web configuration**).
+- Firestore-compatible Item Listings: input validation, posting, photo upload and retrieval.
+- Item Status: seller-only availability changes, with reservation safety.
+- Search and Filtering: keyword and category filtering on fetched Firestore listings.
+- Reservations: transactional reservation, duplicate protection and cancellation.
+- Existing responsive app UI, saved-item behavior, profile, seller contacts and navigation.
+- Explicit offline UI demonstration when Firebase is not configured, with **no pretend live account**.
 
-## Preview on your laptop
-Requires Python 3 (or another local static-file server).
+## Contributor evidence
+
+- **Dann:** [Item Listings PR #1](https://github.com/1erdna/XUThriftExchange/pull/1) · [Item Status PR #2](https://github.com/1erdna/XUThriftExchange/pull/2)
+- **Denz:** [Search PR #3](https://github.com/1erdna/XUThriftExchange/pull/3) · [Reservations PR #4](https://github.com/1erdna/XUThriftExchange/pull/4)
+- **Andrei:** [Firebase Setup PR #5](https://github.com/1erdna/XUThriftExchange/pull/5) · [Google SSO PR #6](https://github.com/1erdna/XUThriftExchange/pull/6) · [UI Integration PR #7](https://github.com/1erdna/XUThriftExchange/pull/7)
+
+The PRs preserve feature commits from the respective contributors. They document uploaded/merged code, not proof that live Firebase authentication or Android testing has passed.
+
+## Run the browser preview
 
 ```bash
 python -m http.server 8080 -d www
 ```
 
-Visit **http://localhost:8080**. On Windows, you can also run `START_PREVIEW_WINDOWS.bat`. For a mobile preview, use your browser's device emulator.
+Open **http://localhost:8080**. If `www/js/firebase-config.js` is blank, the app clearly operates in local demo mode (without real login or shared database). After you register a Firebase Web app, fill in the configuration and enable/deploy the services as described in [MILESTONE3_SETUP.md](MILESTONE3_SETUP.md). Do **not** enter real account passwords into demo forms.
 
-## Android/Cordova preparation
-`www/` is the Cordova web root. With Node.js, a suitable JDK, Android Studio/SDK and Android build tools installed:
+Run the local feature checks:
 
 ```bash
-npm install
-npx cordova platform add android
-npx cordova build android
+npm test
 ```
 
-A successful Cordova build normally creates a debug APK in `platforms/android/app/build/outputs/apk/debug/`. **This repository does not include an APK and Android packaging has not been verified.**
+GitHub Actions also checks JavaScript syntax and tests feature logic on relevant pushes and pull requests. These are **unit/smoke tests with a mocked database**; an actual Firebase Emulator Suite run and real-device acceptance tests are still required.
 
-## Important limitations
-- **Google Sign-In is a visual demo only**, not real Google OAuth.
-- **XU institutional account verification is simulated**. Email verification does not send real messages or prove ownership.
-- Listings, bookmarks, reservations, and session status are stored in browser localStorage for demonstrations only. They are not synchronized across devices or users.
-- No working backend, live database, online payments, courier integration, or in-app messaging. Seller Facebook/phone contact is the intended communication method.
-- Do not enter passwords or other real credentials in the demo.
-- Actual Google SSO requires a supported Android sign-in integration and university identity-policy confirmation.
+## Branch workflow
 
-## Project structure
+`feature/<member>-<feature>` → Pull request → `integration` → reviewed PR → `staging` → tested release PR → `main`.
 
-```
-config.xml               Cordova app metadata
-package.json             Development dependencies / scripts
-START_PREVIEW_WINDOWS.bat
-www/
-  index.html             Mobile UI document shell
-  css/styles.css         Responsive UI stylesheet
-  js/app.js              Screen routing and local demo interactions
-  assets/                Bundled sample item photos and XU icon
-  manifest.webmanifest
-  sw.js                  Basic static asset cache on localhost
-```
-
-## Milestone 2 demonstration
-Sign in as demo user → Home → Search → Item Details → Save and Reserve → Saved → Sell/Post Item → Profile → My Posted Items → Mark Sold → Sign Out.
-
-Next stage: connect real authentication and authorization, Firebase/Firestore/Storage, proper server-side reservation validation, and test on Android devices.
+Keep `main` unchanged until the group approves the tested release. No code changes need to be claimed as final until the required Milestone 3 acceptance criteria pass.
