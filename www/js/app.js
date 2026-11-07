@@ -213,7 +213,7 @@ async function addItem(form){
  if(error){const node=document.getElementById('post-error');if(node){node.hidden=false;node.textContent=error;}toast('Please check your form.');return;}
  const id='demo-'+Date.now().toString(36);model.items.unshift({id,title,description,price,condition:String(data.get('condition')),category:String(data.get('category')),course:String(data.get('course')||'General').trim()||'General',facebook:fb||'',phone:phone||'',image:imageUpload||'assets/books.jpg',status:'Available',seller:'Demo Student',owner:true});imageUpload=null;persist();navigate('myitems');toast('Demo listing published locally.');
 }
-function previewPhoto(file){if(!file)return;if(!file.type.startsWith('image/')){toast('Please select an image file.');return;}if(file.size>8*1024*1024){toast('Choose an image smaller than 8 MB.');return;}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,700/Math.max(img.width,img.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);imageUpload=canvas.toDataURL('image/jpeg',.68);const drop=document.querySelector('.photo-drop');if(drop){drop.querySelector('img')?.remove();const preview=document.createElement('img');preview.src=imageUpload;preview.alt='Selected item preview';drop.appendChild(preview);}toast('Photo ready for local demo post.');};img.src=String(reader.result);};reader.readAsDataURL(file);}
+function previewPhoto(file){if(!file)return;if(!file.type.startsWith('image/')){toast('Please select an image file.');return;}if(file.size>8*1024*1024){toast('Choose an image smaller than 8 MB.');return;}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,700/Math.max(img.width,img.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);imageUpload=canvas.toDataURL('image/jpeg',.68);const drop=document.querySelector('.photo-drop');if(drop){drop.querySelector('img')?.remove();const preview=document.createElement('img');preview.src=imageUpload;preview.alt='Selected item preview';drop.appendChild(preview);}toast(cloudMode?'Photo ready to upload when published.':'Photo ready for local demo post.');};img.src=String(reader.result);};reader.readAsDataURL(file);}
 function sellerContact(kind,id){const item=model.items.find(i=>i.id===id);if(!item)return;const value=kind==='facebook'?item.facebook:item.phone;if(!value){toast('No '+kind+' contact listed.');return;}
 if(kind==='facebook'){const url=validFacebook(value);if(url)window.open(url,'_blank','noopener,noreferrer');else toast('Facebook address cannot be opened.');}
 else{const number=validPhone(value);if(number)window.location.href='tel:'+number;else toast('Phone number is invalid.');}}
@@ -238,10 +238,28 @@ case 'reset-demo':resetDemo();return;
 document.addEventListener('click',event=>{const node=event.target.closest('[data-action]');if(!node)return;event.preventDefault();if(node.dataset.action==='close-modal'&&event.target!==node)return;listAction(node.dataset.action,node);});
 document.addEventListener('submit',event=>{if(event.target.id==='email-form'){event.preventDefault();const field=event.target.elements.email;const email=String(field.value).trim().toLowerCase();if(!/^[^\s@]+@(?:my|g)\.xu\.edu\.ph$/.test(email)){field.setCustomValidity('For this demo, use an email ending in @my.xu.edu.ph or @g.xu.edu.ph.');field.reportValidity();field.setCustomValidity('');return;}emailTyped=email;navigate('verify');return;}
 if(event.target.id==='post-form'){event.preventDefault();addItem(event.target);}});
-document.addEventListener('input',event=>{if(event.target.id==='search-query'){searchQuery=event.target.value;/* Milestone 3 TODO — Denz: query and render actual filtered records. */}});
+document.addEventListener('input',event=>{if(event.target.id==='search-query'){
+ searchQuery=event.target.value;cloudSearchResults=null;
+ const items=displayItems();const target=document.getElementById('catalog-results');if(target)target.innerHTML=grid(items);
+ const count=document.getElementById('result-count');if(count)count.textContent=items.length+' result'+(items.length===1?'':'s');
+ if(cloudMode){clearTimeout(searchTimer);searchTimer=setTimeout(refreshSearchFromCloud,300);}
+}});
 document.addEventListener('change',event=>{if(event.target.id==='item-photo')previewPhoto(event.target.files?.[0]);});
 window.addEventListener('popstate',e=>{const incoming=e.state?.screen;if(incoming)navigate(incoming,{push:false});});
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
-window.XU_M2_TEST={getScreen:()=>currentScreen,getModel:()=>JSON.parse(JSON.stringify(model)),navigate:(screen)=>navigate(screen),reset:resetDemo};
+window.XU_M3_TEST={getScreen:()=>currentScreen,getModel:()=>JSON.parse(JSON.stringify(model)),navigate:(screen)=>navigate(screen),getCloudMode:()=>cloudMode,refresh:loadCloudListings};
+if(cloudMode){
+ backend.subscribe(({user,error})=>{
+  const prior=cloudUser?.uid||null;cloudUser=user||null;
+  model.demoSignedIn=!!cloudUser;model.accountEmail=cloudUser?.email||'';
+  if(!cloudUser){model.items=[];model.saved=[];cloudSearchResults=null;currentScreen='login';}
+  else if(prior!==cloudUser.uid){
+   try{const saved=JSON.parse(localStorage.getItem('xu-m3-saved-'+cloudUser.uid)||'[]');model.saved=Array.isArray(saved)?saved:[];}catch{model.saved=[];}
+   currentScreen='home';void loadCloudListings();
+  }
+  if(error)toast(error.message||'Authentication error.');
+  render();
+ });
+}
 render();
 })();
