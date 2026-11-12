@@ -36,6 +36,14 @@ XU ThriftExchange now compresses an attached JPG/PNG/WebP into a **small inline 
 
 This is **not a production image hosting strategy**: Firestore documents have size limits and storing images increases database reads, bandwidth, and indexing overhead. Use Cloud Storage or a suitable media hosting service for a production marketplace. The security rules in `firestore.rules` now cap the image string size; **republish that rule update in Firebase Console** before considering the live deployment secured.
 
+## Android phone testing
+
+The app's extra **9:41** clock, fake signal icons and simulated notch are **desktop preview elements only**. They are now removed automatically on mobile and touch devices.
+
+To test the **working Firebase browser features** on an Android phone, deploy the `www` directory to Firebase Hosting and open the hosted `.firebaseapp.com` URL in Android Chrome. See **[Dann's Android Testing Guide](ANDROID_DANN_TESTING.md)** for exact Windows commands and screenshot checklist.
+
+Mobile browser Google login on the matching Firebase Hosting domain uses redirect auth to avoid multiple popup conflicts. This does **not** implement native Google SSO inside a Cordova Android APK. Native Android OAuth requires a separate supported identity plugin, Firebase credential exchange, and SHA-1/OAuth setup.
+
 ## Run the browser preview
 
 ```bash
