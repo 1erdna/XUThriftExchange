@@ -21,6 +21,8 @@ for(const [name,source] of [
   ['app.js',appSource],['firestore.rules',firestoreRules],
   ['storage.rules',storageRules]
 ]) {
+  assert.ok(!source.includes('@g.xu.edu.ph'),name+' must not contain a deprecated school domain');
+  assert.ok(!source.includes('(my|g)')&&!source.includes('(?:my|g)'),name+' must use only the my subdomain');
   assert.doesNotMatch(source, /@g\\.xu\\.edu\\.ph|\\(my\\|g\\)|\\(\\?:my\\|g\\)/,name+' must only support my.xu.edu.ph');
 }
 assert.doesNotMatch(appSource, /Reset offline demo|confirm-reset|reset-demo|Google and XU verification are pending/);
