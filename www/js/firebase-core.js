@@ -50,6 +50,13 @@
   // Only one Google login attempt may run at a time. This prevents
   // Firebase auth/cancelled-popup-request on double taps.
   let signInRequest = null;
+  function isCordovaWebView() {
+    const ua = String(root.navigator?.userAgent || "");
+    return Boolean(root.cordova) || (
+      /Android/i.test(ua) && /\bwv\b/i.test(ua) &&
+      root.location?.protocol === "https:" && root.location?.hostname === "localhost"
+    );
+  }
   function useMobileRedirect() {
     const ua = String(root.navigator?.userAgent || "");
     return /Android|iPhone|iPad|iPod/i.test(ua) &&
@@ -58,7 +65,7 @@
   async function signInGoogle() {
     if (!ready) throw new Error("Firebase is not configured yet. See MILESTONE3_SETUP.md.");
     // Browser popup/redirect flows are not supported for Cordova APK WebViews.
-    if (root.cordova) throw new Error("This APK requires native Google Sign-In integration. For Milestone 3, open the Firebase-hosted web app in Chrome on the phone.");
+    if (isCordovaWebView()) throw new Error("Android APK login is not yet implemented. Open the Firebase-hosted XU ThriftExchange link in Chrome on your phone to test all features.");
     if (signInRequest) return signInRequest;
     signInRequest = (async () => {
       const provider = new sdk.auth.GoogleAuthProvider();
@@ -84,7 +91,7 @@
   }
   // Complete a redirect after the browser comes back from Google. The normal
   // Firebase auth observer also restores session state across page loads.
-  if (ready && !root.cordova) {
+  if (ready && !isCordovaWebView()) {
     auth.getRedirectResult().then(async result => {
       if (!result?.user) return;
       if (!(await eligible(result.user))) {
