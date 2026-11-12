@@ -9,9 +9,19 @@ const base = path.join(__dirname, '..', 'www');
 const coreSource = fs.readFileSync(path.join(base, 'js/firebase-core.js'), 'utf8');
 const css = fs.readFileSync(path.join(base, 'css/styles.css'), 'utf8');
 new vm.Script(coreSource, {filename:'firebase-core.js'});
-assert.match(css, /\.app-header-safe,\s*\.app-header-safe::after\s*\{\s*display:\s*none\s*!important\s*;/);
-assert.match(css, /\.app-page\s*\{\s*top:\s*0\s*;/);
-assert.match(css, /@media\s*\(max-width:\s*600px\)/);
+// The actual Android screen must not render an embedded phone/clock/notch.
+assert.match(css, /@media\s*\(max-width:\s*767px\)\s*,\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)/);
+assert.match(css, /\.app-header-safe,\s*\.app-header-safe::before,\s*\.app-header-safe::after\s*\{\s*display:\s*none\s*!important\s*;/);
+assert.match(css, /\.phone-frame\s*\{[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;[\s\S]*?border:\s*0;[\s\S]*?border-radius:\s*0;/);
+assert.match(css, /\.preview-stage\s*\{[\s\S]*?height:\s*100dvh;/);
+assert.match(css, /\.app-page\s*\{\s*top:\s*env\(safe-area-inset-top,\s*0px\)/);
+assert.match(css, /\.nav-item\s*\{[\s\S]*?flex:\s*1 1 0;[\s\S]*?min-width:\s*0;/);
+assert.match(css, /@media\s*\(max-width:\s*360px\)/);
+assert.match(css, /@media\s*\(max-height:\s*500px\)\s*and\s*\(orientation:\s*landscape\)/);
+assert.match(
+  fs.readFileSync(path.join(base,'index.html'),'utf8'),
+  /name="viewport"\s+content="width=device-width, initial-scale=1, viewport-fit=cover"/
+);
 
 const config = {
   apiKey:'test-public-key',authDomain:'test.firebaseapp.com',
@@ -78,5 +88,5 @@ function buildEnvironment({ua='Mozilla/5.0 Chrome', hostname='localhost', protoc
   release({user:mockUser});
   assert.equal((await first).email,xuEmail);
   assert.equal((await second).email,xuEmail);
-  console.log('PASS: mobile fullscreen CSS, native APK guard, mobile redirect, popup single-flight.');
+  console.log('PASS: responsive fullscreen (small/landscape), safe areas, nav sizing, native APK guard, mobile redirect and popup single-flight.');
 })().catch(err=>{console.error(err);process.exitCode=1;});
