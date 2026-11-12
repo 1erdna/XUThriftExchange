@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="ph.edu.xu.thriftexchange.ui" version="0.2.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-  <name>XU ThriftExchange UI</name>
-  <description>ITCC 41 Milestone 2: campus marketplace UI demonstration, without backend integration.</description>
+<widget id="ph.edu.xu.thriftexchange.ui" version="0.3.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+  <name>XU ThriftExchange</name>
+  <description>ITCC 41 Milestone 3: Firebase-backed web marketplace; Android native Google Sign-In pending.</description>
   <author>ITCC 41-A: Denz Macasero, Andrei Nacaya, Dann Roa</author>
   <content src="index.html" />
   <access origin="*" />
