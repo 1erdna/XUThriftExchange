@@ -31,6 +31,16 @@ const expectedRule = String.raw`@my\\.xu\\.edu\\.ph$');`;
 assert.ok(firestoreRules.includes(expectedRule),'Firestore rule must end in the anchored my.xu.edu.ph pattern');
 assert.ok(storageRules.includes(expectedRule),'Storage rule must use the same anchored email domain');
 
+// Prevent malformed rules from being deployed again: a second appended
+// block broke deployment at lines 86 and 93 in November 2026.
+assert.equal((firestoreRules.match(/service cloud\.firestore\s*\{/g)||[]).length, 1);
+assert.equal((firestoreRules.match(/match \/listings\/\{listingId\}/g)||[]).length, 1);
+assert.equal((firestoreRules.match(/match \/reservations\/\{reservationId\}/g)||[]).length, 1);
+assert.match(firestoreRules, /\n  \}\n\}\s*$/, 'Firestore rules must end at the document root closing braces');
+assert.doesNotMatch(firestoreRules, /\n\);\s*\n\s*\}\s*\n\s*function listingPath/,
+  'Never append a second, orphaned copy of the rule functions');
+
+
 // The actual Android screen must not render an embedded phone/clock/notch.
 assert.match(css, /@media\s*\(max-width:\s*767px\)\s*,\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)/);
 assert.match(css, /\.app-header-safe,\s*\.app-header-safe::before,\s*\.app-header-safe::after\s*\{\s*display:\s*none\s*!important\s*;/);
