@@ -47,19 +47,61 @@
     fn({user: currentUser, error: initError});
     return () => subscribers.delete(fn);
   }
+  // Only one Google login attempt may run at a time. This prevents
+  // Firebase auth/cancelled-popup-request on double taps.
+  let signInRequest = null;
+  function isCordovaWebView() {
+    const ua = String(root.navigator?.userAgent || "");
+    return Boolean(root.cordova) || (
+      /Android/i.test(ua) && /\bwv\b/i.test(ua) &&
+      root.location?.protocol === "https:" && root.location?.hostname === "localhost"
+    );
+  }
+  function useMobileRedirect() {
+    const ua = String(root.navigator?.userAgent || "");
+    return /Android|iPhone|iPad|iPod/i.test(ua) &&
+      root.location?.hostname === config.authDomain;
+  }
   async function signInGoogle() {
     if (!ready) throw new Error("Firebase is not configured yet. See MILESTONE3_SETUP.md.");
-    if (root.cordova) throw new Error("Google OAuth inside Android Cordova requires the native Google sign-in integration; use the browser preview for now.");
-    const provider = new sdk.auth.GoogleAuthProvider();
-    provider.setCustomParameters({prompt:"select_account"});
-    const result = await auth.signInWithPopup(provider);
-    if (!(await eligible(result.user))) {
-      await auth.signOut();
-      throw new Error("Please use your verified @my.xu.edu.ph or @g.xu.edu.ph Google account.");
-    }
-    currentUser = result.user;
-    broadcast(null);
-    return currentUser;
+    // Browser popup/redirect flows are not supported for Cordova APK WebViews.
+    if (isCordovaWebView()) throw new Error("Android APK login is not yet implemented. Open the Firebase-hosted XU ThriftExchange link in Chrome on your phone to test all features.");
+    if (signInRequest) return signInRequest;
+    signInRequest = (async () => {
+      const provider = new sdk.auth.GoogleAuthProvider();
+      provider.setCustomParameters({prompt:"select_account"});
+      // Firebase redirect auth works reliably on an app hosted at the SAME
+      // firebaseapp.com authDomain. Do not force redirects from arbitrary URLs
+      // (LAN IP, GitHub HTML preview), where third-party storage blocks it.
+      if (useMobileRedirect()) {
+        await auth.signInWithRedirect(provider);
+        return null; // Full-page navigation; auth observer completes on return.
+      }
+      const result = await auth.signInWithPopup(provider);
+      if (!(await eligible(result.user))) {
+        await auth.signOut();
+        throw new Error("Please use your verified @my.xu.edu.ph or @g.xu.edu.ph Google account.");
+      }
+      currentUser = result.user;
+      broadcast(null);
+      return currentUser;
+    })();
+    try { return await signInRequest; }
+    finally { signInRequest = null; }
+  }
+  // Complete a redirect after the browser comes back from Google. The normal
+  // Firebase auth observer also restores session state across page loads.
+  if (ready && !isCordovaWebView()) {
+    auth.getRedirectResult().then(async result => {
+      if (!result?.user) return;
+      if (!(await eligible(result.user))) {
+        await auth.signOut();
+        broadcast(new Error("Only verified XU Google accounts are allowed."));
+        return;
+      }
+      currentUser = result.user;
+      broadcast(null);
+    }).catch(error => broadcast(error));
   }
   async function signOut() {
     if (!ready) return;

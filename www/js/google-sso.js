@@ -9,6 +9,7 @@
     const backend=root.XUThriftBackend;
     if (!backend?.ready) throw new Error("Firebase setup is incomplete. Configure your Firebase Web app first.");
     const user=await backend.signInGoogle();
+    if (user === null) return null; // Google redirect will complete on page return.
     if (!user || !allowedEmail(user.email)) {
       await backend.signOut();
       throw new Error("Only verified Xavier University Google accounts can sign in.");

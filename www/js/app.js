@@ -86,9 +86,13 @@ async function signOut(){
  }
  model.demoSignedIn=false;model.accountEmail='';persist();navigate('login');toast('Signed out of the local demonstration.');
 }
+let googleLoginBusy=false;
 async function loginReal(){
+ if(googleLoginBusy)return; // Ignore double taps during the OAuth handshake.
+ googleLoginBusy=true;
  try{
   const user=await window.XUThriftSSO.login();
+  if(!user)return; // Mobile browser redirect: result arrives after page navigation.
   cloudUser=user;
   model.demoSignedIn=true;
   model.accountEmail=user.email;
@@ -96,7 +100,12 @@ async function loginReal(){
   render();
   await loadCloudListings();
   toast('Signed in with your verified XU Google account.');
- }catch(error){toast(error.message||'Google sign-in failed.');}
+ }catch(error){
+  const message=error?.code==='auth/cancelled-popup-request'
+    ?'Google login was interrupted. Close extra login popups and try once in Chrome.'
+    :error.message||'Google sign-in failed.';
+  toast(message);
+ }finally{googleLoginBusy=false;}
 }
 function resetDemo(){if(cloudMode){toast('Online data cannot be reset from this device.');return;}model=emptyModel();selectedCategory='All';searchQuery='';imageUpload=null;persist();closeModal();navigate('login');toast('Local demonstration data reset.');}
 function loginView(){
