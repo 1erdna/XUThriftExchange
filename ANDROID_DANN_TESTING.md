@@ -44,7 +44,7 @@ Use **Firebase Hosting** rather than a local IP address or an installed Cordova 
 2. Type the Firebase-hosted URL returned by the deployment above, specifically its `.firebaseapp.com` address.
 3. Confirm the app fills the screen without a second, fake clock, notch, or signal bars.
 4. Tap **Continue with Google once**. The mobile web version should redirect to Google and return to the app.
-5. Choose a verified `@my.xu.edu.ph` or `@g.xu.edu.ph` Google account.
+5. Choose a verified `@my.xu.edu.ph` Google account.
 6. Test these operations: log in, post with a compressed photo, search/filter, reserve another user's available item, and mark an unreserved item Sold from the seller's account.
 7. Save screenshots of successful login/profile, listings with image, search results, reservation, item status, and corresponding Firestore records.
 

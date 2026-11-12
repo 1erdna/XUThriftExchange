@@ -11,7 +11,7 @@ This repository now contains the Firebase Web app configuration for project **`x
 5. **Partially complete:** Cloud Firestore has been created and the initial rules were pasted; publish or update the **latest** `firestore.rules` from `staging` to enforce a 150,000-character image limit. **Firebase Storage is not required** for small demo photos because the app stores compressed JPEG thumbnails directly with listing documents. Cloud Storage remains unavailable on Spark.
 6. **Still required for rules deployment:** Install Firebase CLI and run `firebase login`, then `firebase use --add`, then `firebase deploy --only firestore:rules,storage`. Select the correct project before deploying.
 7. For browser testing, serve the app from its `www` directory: `python -m http.server 8080 -d www`. The CDN-based compat SDK needs internet access.
-8. Sign in using a **verified Google account whose actual Firebase token email ends with** `@my.xu.edu.ph` or `@g.xu.edu.ph`. Confirm those account domains are approved by XU's IT office and use actual Google authentication.
+8. Sign in using a **verified Google account whose actual Firebase token email ends with** `@my.xu.edu.ph`. Confirm those account domains are approved by XU's IT office and use actual Google authentication.
 9. **Cordova/Android limitation:** the browser popup OAuth flow is not a supported Android WebView implementation. Integrate a supported native Google identity SDK, obtain the Google ID token, and call Firebase `signInWithCredential` before claiming an Android SSO build. Firebase's older Cordova OAuth flows were affected by the 2025 Dynamic Links shutdown.
 
 ## Required test cases

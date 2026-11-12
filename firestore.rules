@@ -5,7 +5,85 @@ service cloud.firestore {
       return request.auth != null &&
         request.auth.token.email_verified == true &&
         request.auth.token.firebase.sign_in_provider == 'google.com' &&
-        request.auth.token.email.matches('^[^@]+@(my|g)\\.xu\\.edu\\.ph$');
+        request.auth.token.email.matches('^[^@]+@my\\.xu\\.edu\\.ph$');
+    }
+    function listingPath(id) {return /databases/$(database)/documents/listings/$(id);}
+    function reservationPath(id) {return /databases/$(database)/documents/reservations/$(id);}
+    function onlyChanged(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+    match /listings/{listingId} {
+      allow read: if xuStudent() && (resource.data.visibility == 'public' || resource.data.sellerUid == request.auth.uid);
+      allow create: if xuStudent()
+        && request.resource.data.keys().hasOnly(['title','description','price','category','condition','course','facebook','phone','image','status','visibility','sellerUid','seller','createdAt','updatedAt'])
+        && request.resource.data.keys().hasAll(['title','description','price','category','condition','course','facebook','phone','image','status','visibility','sellerUid','seller','createdAt','updatedAt'])
+        && request.resource.data.sellerUid == request.auth.uid
+        && request.resource.data.status == 'Available'
+        && request.resource.data.visibility == 'public'
+        && request.resource.data.title is string && request.resource.data.title.size() >= 4 && request.resource.data.title.size() <= 80
+        && request.resource.data.description is string && request.resource.data.description.size() >= 10 && request.resource.data.description.size() <= 500
+        && request.resource.data.price is int && request.resource.data.price >= 0 && request.resource.data.price <= 99999
+        && request.resource.data.category in ['Textbooks','Uniforms','Lab Gowns','Equipment']
+        && request.resource.data.condition in ['Good','Like New','Fair']
+        && request.resource.data.course is string && request.resource.data.course.size() <= 50
+        && request.resource.data.facebook is string && request.resource.data.phone is string
+        && (request.resource.data.facebook.size() > 0 || request.resource.data.phone.size() > 0)
+        && request.resource.data.image is string && request.resource.data.image.size() <= 150000 && request.resource.data.seller is string
+        && request.resource.data.createdAt is string && request.resource.data.updatedAt is string;
+      allow update: if xuStudent() && onlyChanged(['status','reservationId','updatedAt']) &&
+        request.resource.data.sellerUid == resource.data.sellerUid && (
+          (request.auth.uid == resource.data.sellerUid &&
+            resource.data.status == 'Available' &&
+            resource.data.get('reservationId', null) == null &&
+            request.resource.data.status == 'Sold' &&
+            request.resource.data.get('reservationId', null) == null)
+          ||
+          (resource.data.status == 'Available' &&
+            resource.data.get('reservationId', null) == null &&
+            request.resource.data.status == 'Reserved' &&
+            request.resource.data.reservationId is string &&
+            getAfter(reservationPath(request.resource.data.reservationId)).data.listingId == listingId &&
+            getAfter(reservationPath(request.resource.data.reservationId)).data.buyerUid == request.auth.uid &&
+            getAfter(reservationPath(request.resource.data.reservationId)).data.status == 'Reserved' &&
+            resource.data.sellerUid != request.auth.uid)
+          ||
+          (resource.data.status == 'Reserved' &&
+            resource.data.reservationId is string &&
+            request.resource.data.status == 'Available' &&
+            request.resource.data.reservationId == null &&
+            get(reservationPath(resource.data.reservationId)).data.status == 'Reserved' &&
+            getAfter(reservationPath(resource.data.reservationId)).data.status == 'Cancelled' &&
+            (get(reservationPath(resource.data.reservationId)).data.buyerUid == request.auth.uid ||
+              resource.data.sellerUid == request.auth.uid))
+        );
+      allow delete: if false;
+    }
+    match /reservations/{reservationId} {
+      allow read: if xuStudent() &&
+        (resource.data.buyerUid == request.auth.uid || resource.data.sellerUid == request.auth.uid);
+      allow create: if xuStudent() &&
+        request.resource.data.keys().hasOnly(['listingId','buyerUid','sellerUid','status','createdAt','updatedAt']) &&
+        request.resource.data.keys().hasAll(['listingId','buyerUid','sellerUid','status','createdAt','updatedAt']) &&
+        request.resource.data.buyerUid == request.auth.uid &&
+        request.resource.data.status == 'Reserved' &&
+        get(listingPath(request.resource.data.listingId)).data.status == 'Available' &&
+        get(listingPath(request.resource.data.listingId)).data.sellerUid == request.resource.data.sellerUid &&
+        request.resource.data.sellerUid != request.auth.uid &&
+        getAfter(listingPath(request.resource.data.listingId)).data.status == 'Reserved' &&
+        getAfter(listingPath(request.resource.data.listingId)).data.reservationId == reservationId;
+      allow update: if xuStudent() &&
+        (request.auth.uid == resource.data.buyerUid || request.auth.uid == resource.data.sellerUid) &&
+        onlyChanged(['status','updatedAt']) &&
+        resource.data.status == 'Reserved' &&
+        request.resource.data.status == 'Cancelled' &&
+        getAfter(listingPath(resource.data.listingId)).data.status == 'Available' &&
+        getAfter(listingPath(resource.data.listingId)).data.reservationId == null;
+      allow delete: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
+);
     }
     function listingPath(id) {return /databases/$(database)/documents/listings/$(id);}
     function reservationPath(id) {return /databases/$(database)/documents/reservations/$(id);}
