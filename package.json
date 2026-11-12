@@ -7,7 +7,7 @@
     "preview": "python -m http.server 8080 -d www",
     "cordova:add-android": "cordova platform add android",
     "cordova:build-android": "cordova build android",
-    "test": "node tests/feature-smoke.test.js"
+    "test": "node tests/feature-smoke.test.js && node tests/android-auth-layout.test.js"
   },
   "devDependencies": {
     "cordova": "^12.0.0",
