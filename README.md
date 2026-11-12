@@ -44,6 +44,18 @@ To test the **working Firebase browser features** on an Android phone, deploy th
 
 Mobile browser Google login on the matching Firebase Hosting domain uses redirect auth to avoid multiple popup conflicts. This does **not** implement native Google SSO inside a Cordova Android APK. Native Android OAuth requires a separate supported identity plugin, Firebase credential exchange, and SHA-1/OAuth setup.
 
+### Responsive screen sizes
+
+The mobile web UI now expands to the **entire available phone viewport**, instead of displaying the desktop mock phone frame. It handles small phones, larger devices, landscape orientation, touch/tablet browsers, bottom safe-area navigation, long listing details, and on-screen keyboards. The desktop browser still shows the phone-shaped preview by design.
+
+**To see these changes on the Firebase-hosted app**, deploy the latest `staging` branch from the project root using:
+
+```powershell
+npx --yes firebase-tools deploy --only hosting --project xuthriftexchange
+```
+
+Then in Android Chrome open `https://xuthriftexchange.firebaseapp.com`. Refresh or clear old site cache if it still shows the previous layout. This fixes layout only; a Cordova APK still requires native Google Sign-In.
+
 ## Run the browser preview
 
 ```bash

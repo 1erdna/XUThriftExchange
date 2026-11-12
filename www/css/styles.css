@@ -58,19 +58,145 @@ a{color:var(--blue)}
 @media (max-height:750px){.login-brand{margin-top:45px}.login-brand h1{margin-top:15px}.login-brand .intro{margin-top:8px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
-/* MOBILE / ANDROID: the desktop iPhone frame and 9:41 clock are preview-only.
-   The real device already supplies its own status bar, notch and navigation bar. */
-@media (max-width: 600px), (pointer: coarse) {
-  html, body { margin:0; width:100%; min-height:100%; background:#fff; }
-  .preview-stage { min-height:100dvh; height:100dvh; width:100%; padding:0; display:block; }
-  .stage-heading, .stage-caption { display:none !important; }
-  .phone-frame { display:block; width:100%; max-width:none; height:100dvh;
-    border:0; border-radius:0; box-shadow:none; outline:0; }
-  .app-shell { width:100%; height:100%; border-radius:0; }
-  .app-header-safe, .app-header-safe::after { display:none !important; }
-  .app-page { top:0; }
-  .app-page.with-nav { bottom:calc(68px + env(safe-area-inset-bottom, 0px)); }
-  .navbar { height:calc(68px + env(safe-area-inset-bottom, 0px)); }
-  .login-brand { margin-top:clamp(24px, 8vh, 65px); }
-  .login-actions { padding-bottom:max(12px, env(safe-area-inset-bottom, 0px)); }
+/*
+ * RESPONSIVE PHONE MODE — XU ThriftExchange
+ * On real smartphones (including landscape) fill the available viewport.
+ * Keep the decorative phone frame only in desktop browser previews.
+ * @media max-width covers compact browser windows, pointer/hover targets
+ * large mobile phones in landscape and touch-only tablets.
+ */
+@media (max-width: 767px), (hover: none) and (pointer: coarse) {
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+    background: #fff;
+    overscroll-behavior: none;
+  }
+  .preview-stage {
+    display: block;
+    width: 100%;
+    height: 100vh; /* Fallback for older Android WebViews */
+    height: 100dvh;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+  .stage-heading, .stage-caption {
+    display: none !important;
+  }
+  .phone-frame {
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    outline: none;
+  }
+  .app-shell {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border-radius: 0;
+    overflow: hidden;
+  }
+  /* Actual device status bar supplies its own time, notch and signal. */
+  .app-header-safe, .app-header-safe::before, .app-header-safe::after {
+    display: none !important;
+  }
+  /* Leave room for system cutouts in standalone fullscreen/PWA mode.
+     In ordinary Android Chrome these insets are normally zero. */
+  .app-page {
+    top: env(safe-area-inset-top, 0px);
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+  }
+  .app-page.with-nav {
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+  .navbar {
+    width: 100%;
+    height: calc(68px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+  .nav-item {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 44px;
+    gap: 2px;
+    font-size: clamp(9px, 2.5vw, 11px);
+  }
+  .login-page {
+    min-height: 100%;
+    height: auto;
+    padding: clamp(20px, 5svh, 52px) clamp(16px, 5vw, 32px)
+      max(16px, env(safe-area-inset-bottom, 0px));
+    gap: clamp(18px, 5svh, 50px);
+  }
+  .login-brand {
+    margin-top: 0;
+  }
+  .login-actions {
+    margin-top: auto;
+    padding-bottom: 0;
+  }
+  .toast {
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .dialog-backdrop {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .bottom-cta {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Keep text and long account/item details inside the viewport. */
+  .profile-hero > div:last-child, .my-item > div, .seller-card > div,
+  .product-info, .form-grid > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .my-item .actions {
+    flex-wrap: wrap;
+  }
+  .form-control, .search-inline input, input, select, textarea {
+    font-size: 16px; /* Prevent unexpected iOS Safari input zoom. */
+  }
+  .catalog {
+    gap: clamp(8px, 3vw, 14px);
+    padding-left: clamp(12px, 4vw, 22px);
+    padding-right: clamp(12px, 4vw, 22px);
+  }
+  .detail-cover {
+    height: clamp(180px, 34vh, 300px);
+  }
+}
+@media (max-width: 360px) {
+  .form-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .my-item { margin-left: 12px; margin-right: 12px; gap: 10px; }
+  .my-item img { width: 62px; height: 62px; flex: 0 0 62px; }
+  .profile-row { padding-left: 13px; padding-right: 13px; }
+  .page-title { padding-left: 14px; padding-right: 14px; }
+  .login-brand h1 { font-size: clamp(24px, 7vw, 30px); }
+  .nav-item .icon { width: 19px; height: 19px; }
+}
+@media (max-width: 320px) {
+  .catalog { grid-template-columns: minmax(0, 1fr); }
+  .product-card img { height: 170px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .login-page { padding-top: 12px; padding-bottom: 12px; gap: 12px; }
+  .login-mark { width: 54px; height: 54px; font-size: 23px; border-radius: 16px; }
+  .login-brand h1 { font-size: 24px; margin-top: 12px; }
+  .login-brand .intro { margin-top: 8px; }
+  .login-actions { margin-top: 16px; }
+  .login-disclaimer { margin-top: 5px; }
 }
