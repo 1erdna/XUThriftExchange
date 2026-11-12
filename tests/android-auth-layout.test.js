@@ -25,7 +25,9 @@ for(const [name,source] of [
 }
 assert.doesNotMatch(appSource, /Reset offline demo|confirm-reset|reset-demo|Google and XU verification are pending/);
 assert.match(appSource, /Verified XU Google account/);
-assert.match(firestoreRules, /@my\\\\\\.xu\\\\\\.edu\\\\\\.ph/);
+const expectedRule = String.raw`@my\\.xu\\.edu\\.ph$');`;
+assert.ok(firestoreRules.includes(expectedRule),'Firestore rule must end in the anchored my.xu.edu.ph pattern');
+assert.ok(storageRules.includes(expectedRule),'Storage rule must use the same anchored email domain');
 
 // The actual Android screen must not render an embedded phone/clock/notch.
 assert.match(css, /@media\s*\(max-width:\s*767px\)\s*,\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)/);
