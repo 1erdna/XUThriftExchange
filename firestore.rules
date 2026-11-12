@@ -5,7 +5,7 @@ service cloud.firestore {
       return request.auth != null &&
         request.auth.token.email_verified == true &&
         request.auth.token.firebase.sign_in_provider == 'google.com' &&
-        request.auth.token.email.matches('^[^@]+@my\\.xu\\.edu\\.ph);
+        request.auth.token.email.matches('^[^@]+@my\\.xu\\.edu\\.ph$');
     }
     function listingPath(id) {return /databases/$(database)/documents/listings/$(id);}
     function reservationPath(id) {return /databases/$(database)/documents/reservations/$(id);}
