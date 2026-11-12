@@ -9,6 +9,26 @@ const base = path.join(__dirname, '..', 'www');
 const coreSource = fs.readFileSync(path.join(base, 'js/firebase-core.js'), 'utf8');
 const css = fs.readFileSync(path.join(base, 'css/styles.css'), 'utf8');
 new vm.Script(coreSource, {filename:'firebase-core.js'});
+
+const ssoSource = fs.readFileSync(path.join(base, 'js/google-sso.js'), 'utf8');
+const appSource = fs.readFileSync(path.join(base, 'js/app.js'), 'utf8');
+const firestoreRules = fs.readFileSync(path.join(__dirname, '..', 'firestore.rules'), 'utf8');
+const storageRules = fs.readFileSync(path.join(__dirname, '..', 'storage.rules'), 'utf8');
+// Regression: do not reintroduce the deprecated g.xu.edu.ph login domain
+// or the offline-reset/pending-verification controls on the profile screen.
+for(const [name,source] of [
+  ['firebase-core.js',coreSource],['google-sso.js',ssoSource],
+  ['app.js',appSource],['firestore.rules',firestoreRules],
+  ['storage.rules',storageRules]
+]) {
+  assert.doesNotMatch(source, /@g\\.xu\\.edu\\.ph|\\(my\\|g\\)|\\(\\?:my\\|g\\)/,name+' must only support my.xu.edu.ph');
+}
+assert.doesNotMatch(appSource, /Reset offline demo|confirm-reset|reset-demo|Google and XU verification are pending/);
+assert.match(appSource, /Verified XU Google account/);
+const expectedRule = String.raw`@my\\.xu\\.edu\\.ph$');`;
+assert.ok(firestoreRules.includes(expectedRule),'Firestore rule must end in the anchored my.xu.edu.ph pattern');
+assert.ok(storageRules.includes(expectedRule),'Storage rule must use the same anchored email domain');
+
 // The actual Android screen must not render an embedded phone/clock/notch.
 assert.match(css, /@media\s*\(max-width:\s*767px\)\s*,\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)/);
 assert.match(css, /\.app-header-safe,\s*\.app-header-safe::before,\s*\.app-header-safe::after\s*\{\s*display:\s*none\s*!important\s*;/);
@@ -68,6 +88,9 @@ function buildEnvironment({ua='Mozilla/5.0 Chrome', hostname='localhost', protoc
 (async()=>{
   const desktop=buildEnvironment();
   assert.equal(desktop.backend.ready,true);
+  assert.equal(desktop.backend.isXUEmail('student@my.xu.edu.ph'),true);
+  assert.equal(desktop.backend.isXUEmail('student@g.xu.edu.ph'),false);
+  assert.equal(desktop.backend.isXUEmail('student@gmail.com'),false);
   assert.equal((await desktop.backend.signInGoogle()).email,xuEmail);
   assert.equal(desktop.popupCalls(),1);
   const mobile=buildEnvironment({ua:'Mozilla/5.0 (Linux; Android 14) Chrome/130',hostname:'test.firebaseapp.com',protocol:'https:'});

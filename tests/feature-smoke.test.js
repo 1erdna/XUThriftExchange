@@ -14,7 +14,7 @@ for(const name of ['features/item-listings.js','features/item-status.js','featur
 }
 const {itemListings,itemStatus,searchFilter,reservations}=context.window.XUThriftFeatures;
 const seller={uid:'seller-123',email:'20240029560@my.xu.edu.ph',displayName:'XU Seller'};
-const buyer={uid:'buyer-456',email:'another@g.xu.edu.ph'};
+const buyer={uid:'buyer-456',email:'another@my.xu.edu.ph'};
 const good={title:'Calculus textbook',description:'Complete pages and notes',price:'280',category:'Textbooks',condition:'Good',course:'Engineering',facebook:'https://www.facebook.com/testpage',phone:''};
 class FakeFirestore{
  constructor(){this.data=new Map();this.seq=1;}

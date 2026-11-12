@@ -4,7 +4,7 @@
  */
 (function (root) {
   "use strict";
-  const allowed = /@(my|g)\.xu\.edu\.ph$/i;
+  const allowed = /@my\.xu\.edu\.ph$/i;
   const config = root.XU_FIREBASE_CONFIG;
   const sdk = root.firebase;
   const configured = !!(sdk && config && ["apiKey","authDomain","projectId","storageBucket","appId"].every(k => String(config[k] || "").trim() && !/replace|your[-_ ]/i.test(config[k])));
@@ -80,7 +80,7 @@
       const result = await auth.signInWithPopup(provider);
       if (!(await eligible(result.user))) {
         await auth.signOut();
-        throw new Error("Please use your verified @my.xu.edu.ph or @g.xu.edu.ph Google account.");
+        throw new Error("Please use your verified @my.xu.edu.ph Google account.");
       }
       currentUser = result.user;
       broadcast(null);
