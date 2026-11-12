@@ -56,6 +56,18 @@ Use `npx cordova platform add android` (if Android platform missing) and `npx co
 
 The mock phone frame should be gone in the newly built APK once the updated `www/css/styles.css` is packaged. Old APKs must be rebuilt/reinstalled to receive these changes.
 
+## Screen-size regression checks
+
+The current `staging` mobile UI is fluid (no embedded fake phone frame, notch, or 9:41 clock). On Android Chrome, check both portrait and landscape, especially:
+
+- A compact phone around 320-360 CSS pixels wide, or Chrome's device emulation.
+- A typical 390-430 CSS pixel wide phone.
+- A larger 480+ CSS pixel phone or tablet.
+- Short/landscape screens: login actions, item form and navigation remain reachable through internal scrolling.
+- The bottom navigation is fully visible and the device's status bar is not duplicated.
+
+The responsive CSS has automated source-regression tests. **Real-device visual verification is still required.** Do not use a stale installed APK; it does not auto-update from GitHub.
+
 ## Troubleshooting
 
 - **Two clocks / black notch:** old app build; get new staging code and rebuild or refresh the hosted page. A real Android status bar may remain at the top—this is normal.
