@@ -58,13 +58,7 @@ a{color:var(--blue)}
 @media (max-height:750px){.login-brand{margin-top:45px}.login-brand h1{margin-top:15px}.login-brand .intro{margin-top:8px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
-/*
- * RESPONSIVE PHONE MODE — XU ThriftExchange
- * On real smartphones (including landscape) fill the available viewport.
- * Keep the decorative phone frame only in desktop browser previews.
- * @media max-width covers compact browser windows, pointer/hover targets
- * large mobile phones in landscape and touch-only tablets.
- */
+
 @media (max-width: 767px), (hover: none) and (pointer: coarse) {
   html, body {
     margin: 0;
@@ -79,7 +73,7 @@ a{color:var(--blue)}
   .preview-stage {
     display: block;
     width: 100%;
-    height: 100vh; /* Fallback for older Android WebViews */
+    height: 100vh; 
     height: 100dvh;
     min-height: 0;
     padding: 0;
@@ -108,12 +102,11 @@ a{color:var(--blue)}
     border-radius: 0;
     overflow: hidden;
   }
-  /* Actual device status bar supplies its own time, notch and signal. */
+  
   .app-header-safe, .app-header-safe::before, .app-header-safe::after {
     display: none !important;
   }
-  /* Leave room for system cutouts in standalone fullscreen/PWA mode.
-     In ordinary Android Chrome these insets are normally zero. */
+  
   .app-page {
     top: env(safe-area-inset-top, 0px);
     overscroll-behavior-y: contain;
@@ -158,7 +151,7 @@ a{color:var(--blue)}
   .bottom-cta {
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
-  /* Keep text and long account/item details inside the viewport. */
+  
   .profile-hero > div:last-child, .my-item > div, .seller-card > div,
   .product-info, .form-grid > div {
     min-width: 0;
@@ -168,7 +161,7 @@ a{color:var(--blue)}
     flex-wrap: wrap;
   }
   .form-control, .search-inline input, input, select, textarea {
-    font-size: 16px; /* Prevent unexpected iOS Safari input zoom. */
+    font-size: 16px; 
   }
   .catalog {
     gap: clamp(8px, 3vw, 14px);
