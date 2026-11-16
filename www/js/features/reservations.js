@@ -1,6 +1,4 @@
-/* XU ThriftExchange — atomic reservations (Firebase compat API).
- * IMPORTANT: Firestore Security Rules must enforce this transaction server-side.
- */
+
 (function (root) {
   'use strict';
   function assertUser(user) {

@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
   const MAX_IMAGE = 8 * 1024 * 1024;
-  const MAX_INLINE_IMAGE_CHARS = 150000; // ~110 KB JPEG thumbnail; well within Firestore's 1 MiB document limit.
+  const MAX_INLINE_IMAGE_CHARS = 150000;
   const CATEGORIES = ["Textbooks", "Uniforms", "Lab Gowns", "Equipment"];
   const CONDITIONS = ["Good", "Like New", "Fair"];
   const COLLECTION = "listings";
@@ -96,9 +96,8 @@
       );
     }
   }
-  // Free Spark-plan fallback: store a SMALL, compressed JPEG thumbnail with the
-  // Firestore listing document. This is for a school project, not a production
-  // replacement for Cloud Storage.
+
+
   async function compressPhotoForFirestore(file) {
     verifyFile(file);
     if (typeof FileReader === "undefined" || typeof Image === "undefined" ||
@@ -127,7 +126,7 @@
       const scale = Math.min(1, maxSide / Math.max(width, height));
       canvas.width = Math.max(1, Math.round(width * scale));
       canvas.height = Math.max(1, Math.round(height * scale));
-      context.fillStyle = "#ffffff"; // White backdrop for transparent PNGs.
+      context.fillStyle = "#ffffff";
       context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(picture, 0, 0, canvas.width, canvas.height);
       for (const quality of [0.72, 0.54, 0.40, 0.28]) {
@@ -163,9 +162,8 @@
       throw new Error("Firestore is not configured.");
     const clean = validateListing(formValues);
     verifyFile(photoFile);
-    // Firebase Storage is unavailable on Spark. Generate a compact JPG data URL
-    // and store it in the Firestore 'image' field alongside the listing instead.
-    // If compression fails, report the error rather than silently losing a photo.
+
+
     const image = photoFile ? checkInlinePhoto(await photoEncoder(photoFile)) : "";
     const now = new Date().toISOString();
     const listing = {

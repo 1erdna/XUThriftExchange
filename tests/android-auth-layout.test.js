@@ -1,6 +1,4 @@
-/* Milestone 3 — mobile layout and Firebase auth behavior regression tests.
- * The Firebase service is mocked; this is NOT a real Android OAuth test.
- */
+
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -14,8 +12,8 @@ const ssoSource = fs.readFileSync(path.join(base, 'js/google-sso.js'), 'utf8');
 const appSource = fs.readFileSync(path.join(base, 'js/app.js'), 'utf8');
 const firestoreRules = fs.readFileSync(path.join(__dirname, '..', 'firestore.rules'), 'utf8');
 const storageRules = fs.readFileSync(path.join(__dirname, '..', 'storage.rules'), 'utf8');
-// Regression: do not reintroduce the deprecated g.xu.edu.ph login domain
-// or the offline-reset/pending-verification controls on the profile screen.
+
+
 for(const [name,source] of [
   ['firebase-core.js',coreSource],['google-sso.js',ssoSource],
   ['app.js',appSource],['firestore.rules',firestoreRules],
@@ -31,8 +29,7 @@ const expectedRule = String.raw`@my\\.xu\\.edu\\.ph$');`;
 assert.ok(firestoreRules.includes(expectedRule),'Firestore rule must end in the anchored my.xu.edu.ph pattern');
 assert.ok(storageRules.includes(expectedRule),'Storage rule must use the same anchored email domain');
 
-// Prevent malformed rules from being deployed again: a second appended
-// block broke deployment at lines 86 and 93 in November 2026.
+
 assert.equal((firestoreRules.match(/service cloud\.firestore\s*\{/g)||[]).length, 1);
 assert.equal((firestoreRules.match(/match \/listings\/\{listingId\}/g)||[]).length, 1);
 assert.equal((firestoreRules.match(/match \/reservations\/\{reservationId\}/g)||[]).length, 1);
@@ -41,7 +38,6 @@ assert.doesNotMatch(firestoreRules, /\n\);\s*\n\s*\}\s*\n\s*function listingPath
   'Never append a second, orphaned copy of the rule functions');
 
 
-// The actual Android screen must not render an embedded phone/clock/notch.
 assert.match(css, /@media\s*\(max-width:\s*767px\)\s*,\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)/);
 assert.match(css, /\.app-header-safe,\s*\.app-header-safe::before,\s*\.app-header-safe::after\s*\{\s*display:\s*none\s*!important\s*;/);
 assert.match(css, /\.phone-frame\s*\{[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;[\s\S]*?border:\s*0;[\s\S]*?border-radius:\s*0;/);

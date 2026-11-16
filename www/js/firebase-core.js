@@ -1,7 +1,4 @@
-/* Firebase compat SDK adapter for XU ThriftExchange browser preview.
- * Cordova Android Google OAuth requires a separately supported native credential flow.
- * No credentials, real users, or backend are simulated in this module.
- */
+
 (function (root) {
   "use strict";
   const allowed = /@my\.xu\.edu\.ph$/i;
@@ -47,8 +44,8 @@
     fn({user: currentUser, error: initError});
     return () => subscribers.delete(fn);
   }
-  // Only one Google login attempt may run at a time. This prevents
-  // Firebase auth/cancelled-popup-request on double taps.
+
+
   let signInRequest = null;
   function isCordovaWebView() {
     const ua = String(root.navigator?.userAgent || "");
@@ -64,18 +61,17 @@
   }
   async function signInGoogle() {
     if (!ready) throw new Error("Firebase is not configured yet. See MILESTONE3_SETUP.md.");
-    // Browser popup/redirect flows are not supported for Cordova APK WebViews.
+
     if (isCordovaWebView()) throw new Error("Android APK login is not yet implemented. Open the Firebase-hosted XU ThriftExchange link in Chrome on your phone to test all features.");
     if (signInRequest) return signInRequest;
     signInRequest = (async () => {
       const provider = new sdk.auth.GoogleAuthProvider();
       provider.setCustomParameters({prompt:"select_account"});
-      // Firebase redirect auth works reliably on an app hosted at the SAME
-      // firebaseapp.com authDomain. Do not force redirects from arbitrary URLs
-      // (LAN IP, GitHub HTML preview), where third-party storage blocks it.
+
+
       if (useMobileRedirect()) {
         await auth.signInWithRedirect(provider);
-        return null; // Full-page navigation; auth observer completes on return.
+        return null;
       }
       const result = await auth.signInWithPopup(provider);
       if (!(await eligible(result.user))) {
@@ -89,8 +85,8 @@
     try { return await signInRequest; }
     finally { signInRequest = null; }
   }
-  // Complete a redirect after the browser comes back from Google. The normal
-  // Firebase auth observer also restores session state across page loads.
+
+
   if (ready && !isCordovaWebView()) {
     auth.getRedirectResult().then(async result => {
       if (!result?.user) return;

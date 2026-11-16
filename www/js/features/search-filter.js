@@ -1,4 +1,4 @@
-/* XU ThriftExchange — functional listing search and filters (Firebase compat API). */
+
 (function (root) {
   'use strict';
   const STATUSES=['Available','Reserved','Sold'];
@@ -19,8 +19,8 @@
     if (status!=='All' && !STATUSES.includes(status)) throw new Error('Invalid availability filter.');
     const cap=Math.min(100,Math.max(1,Number(limit)||100));
     let q=firestore.collection('listings').where('visibility','==','public');
-    // Avoid broad dynamic compound-index requirements in the initial milestone.
-    // Keyword/category/course filters operate on a bounded first-page result set.
+
+
     const snapshot=await q.limit(cap).get();
     const listings=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
     return filterListings(listings,{keyword,category,course,status});

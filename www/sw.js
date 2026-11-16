@@ -1,4 +1,4 @@
-/* Milestone 3: cache app shell as an offline fallback; always try fresh local assets first. */
+
 const CACHE='xu-thriftexchange-milestone3-v1';
 const FILES=['./','./index.html','./css/styles.css','./js/app.js','./js/firebase-config.js','./js/firebase-core.js','./js/google-sso.js','./js/features/item-listings.js','./js/features/item-status.js','./js/features/search-filter.js','./js/features/reservations.js','./assets/icon.svg','./assets/books.jpg','./assets/medical.jpg','./assets/bag.jpg','./assets/math.jpg','./manifest.webmanifest'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));

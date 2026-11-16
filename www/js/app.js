@@ -1,9 +1,4 @@
-/*
- * XU ThriftExchange — ITCC 41 Milestone 2
- * UI implementation only. Google / email authentication, institutional verification,
- * marketplace data, reservations, and file uploads are SIMULATED with browser-local demo state.
- * Never enter real credentials here. No network calls, payments or server persistence.
- */
+
 (()=>{
 'use strict';
 const STORAGE='xuThriftExchange_milestone2_demo_v1';
@@ -88,11 +83,11 @@ async function signOut(){
 }
 let googleLoginBusy=false;
 async function loginReal(){
- if(googleLoginBusy)return; // Ignore double taps during the OAuth handshake.
+ if(googleLoginBusy)return;
  googleLoginBusy=true;
  try{
   const user=await window.XUThriftSSO.login();
-  if(!user)return; // Mobile browser redirect: result arrives after page navigation.
+  if(!user)return;
   cloudUser=user;
   model.demoSignedIn=true;
   model.accountEmail=user.email;
