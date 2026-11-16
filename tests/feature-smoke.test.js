@@ -1,4 +1,4 @@
-/* Milestone 3 local smoke tests — no Firebase project required. */
+
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
@@ -48,7 +48,7 @@ class FakeCollection{
  const created=await itemListings.createListing({formValues:good,currentUser:seller,firestore:db});
  assert.equal(created.status,'Available');
  assert.equal(created.sellerUid,seller.uid);
- // A Spark-plan listing with an attached photo must not require Cloud Storage.
+
  const jpegData='data:image/jpeg;base64,'+'A'.repeat(5000);
  const photograph={type:'image/png',size:2048};
  const withPhoto=await itemListings.createListing({
@@ -61,7 +61,7 @@ class FakeCollection{
    formValues:good,currentUser:seller,firestore:db,photoFile:photograph,
    photoEncoder:async()=>('data:image/jpeg;base64,'+'A'.repeat(itemListings.MAX_INLINE_IMAGE_CHARS))
  }),/too large/);
- // Test the browser compressor's canvas/photo-handling path with lightweight stubs.
+
  context.FileReader=class {
    readAsDataURL(){this.result='data:image/png;base64,AAAA';this.onload();}
  };
