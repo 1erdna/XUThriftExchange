@@ -148,7 +148,7 @@ with sync_playwright() as pw:
     nav(s, "profile")
     nav(s, "myitems")
     act(s, "mark-sold")
-    expect(s.locator(".my-item")).to_contain_text("Sold")
+    expect(s.locator(".my-item .muted")).to_have_text("₱280 · Sold")
     shot(s, "07-sold")
     mark("seller completes active reservation as Sold")
     buyer.reload()
