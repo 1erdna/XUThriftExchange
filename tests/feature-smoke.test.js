@@ -45,7 +45,8 @@ class FakeCollection{
  assert.equal(itemListings.validateListing(good).price,280);
  assert.throws(()=>itemListings.validateListing({...good,price:'-1'}),/Price/);
  assert.throws(()=>itemListings.validateListing({...good,phone:'123',facebook:''}),/mobile/);
- const created=await itemListings.createListing({formValues:good,currentUser:seller,firestore:db});
+ await assert.rejects(()=>itemListings.createListing({formValues:good,currentUser:seller,firestore:db}),/Add a photo/);
+ const created=await itemListings.createListing({formValues:good,currentUser:seller,firestore:db,photoFile:{type:'image/jpeg',size:10},photoEncoder:async()=>'data:image/jpeg;base64,AAAA'});
  assert.equal(created.status,'Available');
  assert.equal(created.sellerUid,seller.uid);
 
@@ -89,11 +90,15 @@ class FakeCollection{
  assert.equal(reservation.status,'Reserved');
  assert.equal(db.docs('listings').get(created.id).status,'Reserved');
  await assert.rejects(()=>reservations.createReservation({listingId:created.id,currentUser:{uid:'other'},firestore:db}),/reserved|unavailable/);
- await assert.rejects(()=>itemStatus.updateItemStatus({listingId:created.id,newStatus:'Sold',currentUser:seller,firestore:db}),/reservation/);
+
  await reservations.cancelReservation({reservationId:reservation.id,currentUser:buyer,firestore:db});
  assert.equal(db.docs('listings').get(created.id).status,'Available');
  await itemStatus.updateItemStatus({listingId:created.id,newStatus:'Sold',currentUser:seller,firestore:db});
  assert.equal(db.docs('listings').get(created.id).status,'Sold');
  await assert.rejects(()=>reservations.createReservation({listingId:created.id,currentUser:buyer,firestore:db}),/unavailable/);
- console.log('PASS: listing CRUD, inline photo fallback/compression, ownership, search/filter, reservation/cancellation smoke tests.');
+ const held=await reservations.createReservation({listingId:withPhoto.id,currentUser:buyer,firestore:db});
+ await itemStatus.updateItemStatus({listingId:withPhoto.id,newStatus:'Sold',currentUser:seller,firestore:db});
+ assert.equal(db.docs('reservations').get(held.id).status,'Completed');
+ assert.equal(db.docs('listings').get(withPhoto.id).status,'Sold');
+ console.log('PASS: listing creation, inline photo fallback/compression, ownership, search/filter, reservation/cancellation smoke tests.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,13 +1,14 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="ph.edu.xu.thriftexchange.ui" version="0.3.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <name>XU ThriftExchange</name>
-  <description>ITCC 41 Milestone 3: Firebase-backed web marketplace; Android native Google Sign-In pending.</description>
+  <description>Xavier University campus marketplace</description>
   <author>ITCC 41-A: Denz Macasero, Andrei Nacaya, Dann Roa</author>
   <content src="index.html" />
   <access origin="*" />
   <allow-navigation href="about:*" />
   <allow-intent href="tel:*" />
   <allow-intent href="https://www.facebook.com/*" />
+  <preference name="GoogleWebClientId" value="1001271259486-dinqgr5pqcs5en79csbabf860fovm50q.apps.googleusercontent.com" />
   <preference name="Orientation" value="portrait" />
   <preference name="Fullscreen" value="false" />
   <preference name="AndroidXEnabled" value="true" />

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="xu-google-identity" version="1.0.0">
+  <name>XU Google Identity</name>
+  <platform name="android">
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="XuGoogleIdentity">
+        <param name="android-package" value="ph.edu.xu.identity.GoogleIdentity"/>
+      </feature>
+    </config-file>
+    <source-file src="src/android/GoogleIdentity.java" target-dir="src/ph/edu/xu/identity"/>
+    <framework src="androidx.credentials:credentials:1.3.0"/>
+    <framework src="androidx.credentials:credentials-play-services-auth:1.3.0"/>
+    <framework src="com.google.android.libraries.identity.googleid:googleid:1.1.1"/>
+  </platform>
+</plugin>
