@@ -6,3 +6,6 @@ www/.DS_Store
 *.aab
 *.keystore
 *.jks
+evidence/
+__pycache__/
+*-debug.log

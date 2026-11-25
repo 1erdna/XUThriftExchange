@@ -193,3 +193,13 @@ a{color:var(--blue)}
   .login-actions { margin-top: 16px; }
   .login-disclaimer { margin-top: 5px; }
 }
+
+@media (min-width: 768px) and (hover: hover) {
+  .preview-stage { display: grid; min-height: 100dvh; padding: 0; place-items: center; }
+  .phone-frame { width: min(100%, 760px); height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+  .app-shell { border-radius: 0; }
+  .app-header-safe { display: none; }
+  .app-page { top: 0; }
+  .catalog { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.detail-body { padding-bottom: 90px; }

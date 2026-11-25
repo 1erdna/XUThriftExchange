@@ -106,10 +106,10 @@ function buildEnvironment({ua='Mozilla/5.0 Chrome', hostname='localhost', protoc
   assert.equal(mobile.redirectCalls(),1);
   assert.equal(mobile.popupCalls(),0);
   const apk=buildEnvironment({cordova:true});
-  await assert.rejects(()=>apk.backend.signInGoogle(),/Android APK login is not yet implemented/);
+  await assert.rejects(()=>apk.backend.signInGoogle(),/Android sign-in is unavailable/);
   assert.equal(apk.popupCalls(),0);
   const webView=buildEnvironment({ua:'Mozilla/5.0 (Linux; Android 14; Pixel) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36 wv',hostname:'localhost',protocol:'https:'});
-  await assert.rejects(()=>webView.backend.signInGoogle(),/Android APK login is not yet implemented/);
+  await assert.rejects(()=>webView.backend.signInGoogle(),/Android sign-in is unavailable/);
   let release;
   const pending=new Promise(resolve=>{release=resolve;});
   const repeated=buildEnvironment({popup:()=>pending});

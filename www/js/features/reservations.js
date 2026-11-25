@@ -11,19 +11,30 @@
     if (!String(listingId||'').trim()) throw new Error('Select a listing.');
     const listingRef=firestore.collection('listings').doc(listingId);
     const reservationRef=firestore.collection('reservations').doc();
-    return firestore.runTransaction(async tx => {
-      const snap=await tx.get(listingRef);
-      if (!snap.exists) throw new Error('Listing not found.');
-      const listing=snap.data();
-      if (listing.visibility!=='public') throw new Error('This listing is not public.');
-      if (listing.sellerUid===buyerUid) throw new Error('You cannot reserve your own listing.');
-      if (listing.status!=='Available' || listing.reservationId) throw new Error('This item is already reserved or unavailable.');
-      const now=new Date().toISOString();
-      const reservation={listingId,buyerUid,sellerUid:listing.sellerUid,status:'Reserved',createdAt:now,updatedAt:now};
-      tx.set(reservationRef,reservation);
-      tx.update(listingRef,{status:'Reserved',reservationId:reservationRef.id,updatedAt:now});
-      return {id:reservationRef.id,...reservation};
-    });
+    try {
+      return await firestore.runTransaction(async tx => {
+        const snap=await tx.get(listingRef);
+        if (!snap.exists) throw new Error('Listing not found.');
+        const listing=snap.data();
+        if (listing.visibility!=='public') throw new Error('This listing is not public.');
+        if (listing.sellerUid===buyerUid) throw new Error('You cannot reserve your own listing.');
+        if (listing.status!=='Available' || listing.reservationId) throw new Error('This item is already reserved or unavailable.');
+        const now=new Date().toISOString();
+        const reservation={listingId,buyerUid,sellerUid:listing.sellerUid,status:'Reserved',createdAt:now,updatedAt:now};
+        tx.set(reservationRef,reservation);
+        tx.update(listingRef,{status:'Reserved',reservationId:reservationRef.id,updatedAt:now});
+        return {id:reservationRef.id,...reservation};
+      });
+    } catch (error) {
+      // A competing commit may reach the rules before the SDK retries.
+      if (error.code === 'permission-denied') {
+        const latest = await listingRef.get();
+        if (latest.exists && latest.data().status !== 'Available') {
+          throw new Error('This item is already reserved or unavailable.');
+        }
+      }
+      throw error;
+    }
   }
   async function getMyReservations({currentUser,firestore}={}) {
     const buyerUid=assertUser(currentUser);

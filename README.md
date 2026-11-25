@@ -1,79 +1,58 @@
-# XU ThriftExchange — Milestone 3 Core Functionality
+# XU ThriftExchange
 
-ITCC 41-A · Mobile Applications Development  
-**Team:** Andrei Nacaya · Dann Roa · Denz Macasero
+A campus marketplace for second-hand books, uniforms, laboratory gowns and equipment at Xavier University – Ateneo de Cagayan. Buyers and sellers use verified Google accounts ending in `@my.xu.edu.ph`. Contact, payment and pickup happen outside the app.
 
-## Project status
+## Run the web app
 
-**Milestone 3 source code has been integrated and passes automated mocked-database tests.** The project is **NOT YET a verified live multi-user application**: the Firebase Web configuration is now entered, but it still needs deployed security rules, enabled services, university-approved Google authentication, and tests using real student accounts. Android/Cordova Google sign-in and installable APK build also remain unverified.
+Use [Firebase Hosting](https://xuthriftexchange.firebaseapp.com) in Chrome. For the source version, check out `staging`, run `npm run preview` with Python 3 on PATH and open http://localhost:8080. Google sign-in needs network access and an authorized origin in Firebase Authentication. Localhost may need to be added by a project administrator. The site uses the Firebase compat SDK from gstatic. If the backend cannot initialize, the sign-in screen offers a retry.
 
-- Stable Milestone 2 preview: [`main`](https://github.com/1erdna/XUThriftExchange/tree/main)
-- Integrated Milestone 3 code: [`integration`](https://github.com/1erdna/XUThriftExchange/tree/integration)
-- Milestone 3 acceptance testing: [`staging`](https://github.com/1erdna/XUThriftExchange/tree/staging)
-- **[Milestone 3 setup and testing checklist](MILESTONE3_SETUP.md)**
+## Firebase and release
 
-## Working features in code
+The public Web configuration lives in `www/js/firebase-config.js`. Project ID is `xuthriftexchange`. Enable Google in Authentication, check authorized domains and provision Cloud Firestore. Deploy the app and its matching Firestore rules together from the tested revision. The final source requires a photo on new listings and supports completing an active reservation. Earlier hosted revisions may behave differently.
 
-- Google SSO controller for browser Firebase Authentication, Xavier account checks, sign-out and session restoration (**requires Google sign-in enabled in Firebase Console**).
-- Firestore-compatible Item Listings: input validation, posting, retrieval and **small compressed JPEG thumbnails stored directly in listing documents** on the no-cost Spark plan. Cloud Storage is not required for these thumbnails.
-- Item Status: seller-only availability changes, with reservation safety.
-- Search and Filtering: keyword and category filtering on fetched Firestore listings.
-- Reservations: transactional reservation, duplicate protection and cancellation.
-- Existing responsive app UI, saved-item behavior, profile, seller contacts and navigation.
-- Explicit offline UI demonstration when Firebase is not configured, with **no pretend live account**.
-
-## Contributor evidence
-
-- **Dann:** [Item Listings PR #1](https://github.com/1erdna/XUThriftExchange/pull/1) · [Item Status PR #2](https://github.com/1erdna/XUThriftExchange/pull/2)
-- **Denz:** [Search PR #3](https://github.com/1erdna/XUThriftExchange/pull/3) · [Reservations PR #4](https://github.com/1erdna/XUThriftExchange/pull/4)
-- **Andrei:** [Firebase Setup PR #5](https://github.com/1erdna/XUThriftExchange/pull/5) · [Google SSO PR #6](https://github.com/1erdna/XUThriftExchange/pull/6) · [UI Integration PR #7](https://github.com/1erdna/XUThriftExchange/pull/7)
-
-The PRs preserve feature commits from the respective contributors. They document uploaded/merged code, not proof that live Firebase authentication or Android testing has passed.
-
-## Item photos on the Spark plan
-
-XU ThriftExchange now compresses an attached JPG/PNG/WebP into a **small inline JPEG thumbnail** (up to 150,000 characters, approximately 110 KiB) and saves it in the Firestore listing's `image` field. This avoids the Firebase Storage Blaze-plan requirement for a **school demonstration**.
-
-This is **not a production image hosting strategy**: Firestore documents have size limits and storing images increases database reads, bandwidth, and indexing overhead. Use Cloud Storage or a suitable media hosting service for a production marketplace. The security rules in `firestore.rules` now cap the image string size; **republish that rule update in Firebase Console** before considering the live deployment secured.
-
-## Android phone testing
-
-The app's extra **9:41** clock, fake signal icons and simulated notch are **desktop preview elements only**. They are now removed automatically on mobile and touch devices.
-
-To test the **working Firebase browser features** on an Android phone, deploy the `www` directory to Firebase Hosting and open the hosted `.firebaseapp.com` URL in Android Chrome. See **[Dann's Android Testing Guide](ANDROID_DANN_TESTING.md)** for exact Windows commands and screenshot checklist.
-
-Mobile browser Google login on the matching Firebase Hosting domain uses redirect auth to avoid multiple popup conflicts. This does **not** implement native Google SSO inside a Cordova Android APK. Native Android OAuth requires a separate supported identity plugin, Firebase credential exchange, and SHA-1/OAuth setup.
-
-### Responsive screen sizes
-
-The mobile web UI now expands to the **entire available phone viewport**, instead of displaying the desktop mock phone frame. It handles small phones, larger devices, landscape orientation, touch/tablet browsers, bottom safe-area navigation, long listing details, and on-screen keyboards. The desktop browser still shows the phone-shaped preview by design.
-
-**To see these changes on the Firebase-hosted app**, deploy the latest `staging` branch from the project root using:
-
-```powershell
-npx --yes firebase-tools deploy --only hosting --project xuthriftexchange
+With the Firebase CLI installed and an authorized project account:
+```sh
+firebase login
+firebase deploy --only firestore:rules,hosting --project xuthriftexchange
 ```
 
-Then in Android Chrome open `https://xuthriftexchange.firebaseapp.com`. Refresh or clear old site cache if it still shows the previous layout. This fixes layout only; a Cordova APK still requires native Google Sign-In.
+The app stores a compressed JPEG of up to 150,000 characters in the listing document. No Storage deployment, bucket upload or billing upgrade is needed. Existing listings can still be viewed. The feed fetches up to 100 public records and sorts the fetched records locally. Search combines a keyword (including course text) with a category. Availability refreshes on reads and after writes. Reload to see another student's changes. Bookmarks stay in this browser under the signed-in user's ID.
 
-## Run the browser preview
+## Tests
 
-```bash
-python -m http.server 8080 -d www
+`npm test` runs Node feature and auth/layout regressions with test doubles. The browser suite runs real UI code with local Auth and Firestore emulators, rule enforcement and synthetic Google identities. It exercises independent browser sessions, required photos, filtering, ownership, competing buyers, cancellation, seller completion, logout and viewport widths. It requires a fresh emulator database.
+
+1. Install Python Playwright (`python -m pip install playwright`, then `python -m playwright install chromium`). Install the Firebase CLI and Java for your emulator version.
+2. In one terminal serve `www` with `python -m http.server 8510 --bind 127.0.0.1 -d www`.
+3. In another terminal, from the repository root, run:
+```sh
+firebase emulators:exec --config firebase.test.json --project demo-xu --only auth,firestore "python tests/browser_emulators.py"
 ```
 
-Open **http://localhost:8080**. The Firebase Web configuration for project `xuthriftexchange` has been entered. The browser will now attempt real Firebase Authentication. **A config alone does not establish working sign-in, create Firestore/Storage databases, or deploy rules.** Complete the service setup in [MILESTONE3_SETUP.md](MILESTONE3_SETUP.md). To use local demo mode, use the earlier Milestone 2 `main` branch instead. Do **not** enter real account passwords into demo forms.
+The script saves unedited screenshots under `evidence/`. Optional environment variables: `CHROMIUM_PATH` for a Chromium executable, `XU_EVIDENCE_DIR` for the destination and `XU_SDK_DIR` for a local copy of the four SDK scripts named in index.html. Test configuration is supplied by Playwright and never enters the production site.
 
-Run the local feature checks:
+## Android
 
-```bash
-npm test
+Install Node 22+, JDK 17, Android SDK Platform 35, Build Tools 35.0.0, platform-tools and Gradle 8.13. Set JAVA_HOME and ANDROID_HOME and put tools on PATH. From a fresh checkout:
+
+```sh
+npm ci
+npx cordova prepare android
+npx cordova requirements android
+npm run cordova:build-android
+adb install -r platforms/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-GitHub Actions also checks JavaScript syntax and tests feature logic on relevant pushes and pull requests. These are **unit/smoke tests with a mocked database**; an actual Firebase Emulator Suite run and real-device acceptance tests are still required.
+The local Cordova plugin in `native/google-identity` calls Android Credential Manager. The explicit Google button requests an ID token for the project's public Web OAuth client ID in `config.xml`. The JS SDK exchanges it for a Firebase credential and uses the same account checks and Firestore session as the browser. No client secret belongs in the app.
 
-## Branch workflow
+In Firebase Project settings, register package `ph.edu.xu.thriftexchange.ui` with the SHA-1 for the certificate signing the installed APK. Obtain it using `apksigner verify --print-certs PATH_TO_APK`. Register each signing key separately. The project uses the Web SDK for Firebase, so the bridge reads its public Web client ID from Cordova preferences. Test on a Google Play services device with an eligible XU account, then a personal account. Android build and signature verification alone do not establish that production OAuth works.
 
-`feature/<member>-<feature>` → Pull request → `integration` → reviewed PR → `staging` → tested release PR → `main`.
+## Contributions and branches
 
-Keep `main` unchanged until the group approves the tested release. No code changes need to be claimed as final until the required Milestone 3 acceptance criteria pass.
+| Member | Feature | Original evidence |
+|---|---|---|
+| Andrei Nacaya | Firebase, authentication and UI integration | 395cb54, 51ba469, ec5958a |
+| Dann Roa | Item listings and seller status | de76179, ca3b356 |
+| Denz Macasero | Search/filtering and reservations | a462cad, 59de4fc |
+
+Feature branches merge into `integration`, then `staging`. Promote staging to `main` through a release pull request after live verification. The Milestone 3 documents and Android testing notes describe earlier revisions.
