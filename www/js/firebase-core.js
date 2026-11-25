@@ -54,6 +54,11 @@
       root.location?.protocol === "https:" && root.location?.hostname === "localhost"
     );
   }
+  function nativeIdentity(action) {
+    if (!root.cordova?.exec) return Promise.reject(new Error("Android sign-in is unavailable. Open the hosted app in Chrome."));
+    return new Promise((resolve, reject) => root.cordova.exec(resolve,
+      message => reject(new Error(String(message))), "XuGoogleIdentity", action, []));
+  }
   function useMobileRedirect() {
     const ua = String(root.navigator?.userAgent || "");
     return /Android|iPhone|iPad|iPod/i.test(ua) &&
@@ -62,18 +67,21 @@
   async function signInGoogle() {
     if (!ready) throw new Error("Firebase is not configured yet. See MILESTONE3_SETUP.md.");
 
-    if (isCordovaWebView()) throw new Error("Android APK login is not yet implemented. Open the Firebase-hosted XU ThriftExchange link in Chrome on your phone to test all features.");
     if (signInRequest) return signInRequest;
     signInRequest = (async () => {
-      const provider = new sdk.auth.GoogleAuthProvider();
-      provider.setCustomParameters({prompt:"select_account"});
-
-
-      if (useMobileRedirect()) {
-        await auth.signInWithRedirect(provider);
-        return null;
+      let result;
+      if (isCordovaWebView()) {
+        const token = await nativeIdentity("signIn");
+        result = await auth.signInWithCredential(sdk.auth.GoogleAuthProvider.credential(token));
+      } else {
+        const provider = new sdk.auth.GoogleAuthProvider();
+        provider.setCustomParameters({prompt:"select_account"});
+        if (useMobileRedirect()) {
+          await auth.signInWithRedirect(provider);
+          return null;
+        }
+        result = await auth.signInWithPopup(provider);
       }
-      const result = await auth.signInWithPopup(provider);
       if (!(await eligible(result.user))) {
         await auth.signOut();
         throw new Error("Please use your verified @my.xu.edu.ph Google account.");
@@ -102,6 +110,7 @@
   async function signOut() {
     if (!ready) return;
     await auth.signOut();
+    if (isCordovaWebView()) await nativeIdentity("clear");
     currentUser = null;
     broadcast(null);
   }

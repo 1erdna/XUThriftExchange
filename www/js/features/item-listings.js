@@ -85,7 +85,7 @@
     };
   }
   function verifyFile(file) {
-    if (!file) return;
+    if (!file) throw new Error("Add a photo of the item before publishing.");
     if (
       !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
       file.size > MAX_IMAGE ||
@@ -164,7 +164,7 @@
     verifyFile(photoFile);
 
 
-    const image = photoFile ? checkInlinePhoto(await photoEncoder(photoFile)) : "";
+    const image = checkInlinePhoto(await photoEncoder(photoFile));
     const now = new Date().toISOString();
     const listing = {
       ...clean,

@@ -29,10 +29,20 @@
         throw new Error("Only the listing owner can change its status.");
       if (item.status === "Sold" && newStatus !== "Sold")
         throw new Error("Sold items cannot be reopened automatically.");
-      if (item.reservationId && item.status === "Reserved")
-        throw new Error(
-          "Resolve the active reservation before changing this item status.",
-        );
+      if (item.status === "Reserved" && newStatus === "Sold") {
+        if (!item.reservationId) throw new Error("This listing has no active reservation.");
+        const reservationRef = firestore.collection("reservations").doc(item.reservationId);
+        const reserved = await tx.get(reservationRef);
+        if (!reserved.exists || reserved.data().listingId !== listingId ||
+            reserved.data().sellerUid !== sellerUid || reserved.data().status !== "Reserved") {
+          throw new Error("The reservation is out of sync. Reload the listing.");
+        }
+        const updatedAt = new Date().toISOString();
+        const patch = { status: "Sold", reservationId: null, updatedAt };
+        tx.update(reservationRef, { status: "Completed", updatedAt });
+        tx.update(ref, patch);
+        return { id: snap.id, ...item, ...patch, owner: true };
+      }
       if (newStatus === "Available" && item.reservationId)
         throw new Error("Resolve the reservation before reopening this item.");
       if (item.status === newStatus)

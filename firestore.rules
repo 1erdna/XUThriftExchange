@@ -28,7 +28,8 @@ service cloud.firestore {
         && request.resource.data.course is string && request.resource.data.course.size() <= 50
         && request.resource.data.facebook is string && request.resource.data.phone is string
         && (request.resource.data.facebook.size() > 0 || request.resource.data.phone.size() > 0)
-        && request.resource.data.image is string && request.resource.data.image.size() <= 150000 && request.resource.data.seller is string
+        && request.resource.data.image is string && request.resource.data.image.size() <= 150000
+        && request.resource.data.image.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$') && request.resource.data.seller is string
         && request.resource.data.createdAt is string && request.resource.data.updatedAt is string;
       allow update: if xuStudent() && onlyChanged(['status','reservationId','updatedAt']) &&
         request.resource.data.sellerUid == resource.data.sellerUid && (
@@ -46,6 +47,14 @@ service cloud.firestore {
             getAfter(reservationPath(request.resource.data.reservationId)).data.buyerUid == request.auth.uid &&
             getAfter(reservationPath(request.resource.data.reservationId)).data.status == 'Reserved' &&
             resource.data.sellerUid != request.auth.uid)
+          ||
+          (request.auth.uid == resource.data.sellerUid &&
+            resource.data.status == 'Reserved' &&
+            resource.data.reservationId is string &&
+            request.resource.data.status == 'Sold' &&
+            request.resource.data.reservationId == null &&
+            get(reservationPath(resource.data.reservationId)).data.status == 'Reserved' &&
+            getAfter(reservationPath(resource.data.reservationId)).data.status == 'Completed')
           ||
           (resource.data.status == 'Reserved' &&
             resource.data.reservationId is string &&
@@ -75,8 +84,10 @@ service cloud.firestore {
         (request.auth.uid == resource.data.buyerUid || request.auth.uid == resource.data.sellerUid) &&
         onlyChanged(['status','updatedAt']) &&
         resource.data.status == 'Reserved' &&
-        request.resource.data.status == 'Cancelled' &&
-        getAfter(listingPath(resource.data.listingId)).data.status == 'Available' &&
+        get(listingPath(resource.data.listingId)).data.reservationId == reservationId &&
+        ((request.resource.data.status == 'Cancelled' && getAfter(listingPath(resource.data.listingId)).data.status == 'Available') ||
+         (request.auth.uid == resource.data.sellerUid && request.resource.data.status == 'Completed' &&
+          getAfter(listingPath(resource.data.listingId)).data.status == 'Sold')) &&
         getAfter(listingPath(resource.data.listingId)).data.reservationId == null;
       allow delete: if false;
     }
