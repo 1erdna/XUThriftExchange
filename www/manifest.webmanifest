@@ -1,7 +1,7 @@
 {
-  "name": "XU ThriftExchange — UI Demo",
+  "name": "XU ThriftExchange",
   "short_name": "ThriftExchange",
-  "description": "Milestone 2 working user-interface demonstration; no live account or commerce services",
+  "description": "Xavier University marketplace with Firebase-backed listings and search",
   "id": "./index.html",
   "start_url": "./index.html",
   "display": "standalone",

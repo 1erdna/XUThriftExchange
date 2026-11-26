@@ -1,66 +1,58 @@
-# XU ThriftExchange — Milestone 2 Working UI
+# XU ThriftExchange
 
-ITCC 41-A · Mobile Applications Development  
-Team: Denz Macasero, Andrei Nacaya, Dann Roa
+A campus marketplace for second-hand books, uniforms, laboratory gowns and equipment at Xavier University – Ateneo de Cagayan. Buyers and sellers use verified Google accounts ending in `@my.xu.edu.ph`. Contact, payment and pickup happen outside the app.
 
-**Status: navigable mobile UI prototype; backend integration is not yet implemented.**
+## Run the web app
 
-## Try the working UI demo (browser)
+Use [Firebase Hosting](https://xuthriftexchange.firebaseapp.com) in a current browser. The staging release and matching Firestore rules were deployed on 26 November 2026. A real XU account opened Home, and live keyword/category search returned matching and empty results. For the source version, check out `staging`, run `npm run preview` with Python 3 on PATH and open http://localhost:8080. Google sign-in needs network access and an authorized origin in Firebase Authentication. Localhost may need to be added by a project administrator. The site uses the Firebase compat SDK from gstatic. If the backend cannot initialize, the sign-in screen offers a retry.
 
-**[▶ Open XU ThriftExchange — Live UI Preview](https://htmlpreview.github.io/?https://github.com/1erdna/XUThriftExchange/blob/main/www/index.html)**
+## Firebase and release
 
-Open the link on a phone or laptop. This third-party GitHub HTML preview displays the latest `www/index.html` from `main`; use a mobile-size browser window for the intended layout. The interface is navigable and uses **local demonstration data only**. Google/XU sign-in, email verification, reservations, and listings are simulations — no real student account or backend is connected. Do not enter real credentials.
+The public Web configuration lives in `www/js/firebase-config.js`. Project ID is `xuthriftexchange`. Google Authentication, authorized domains and Cloud Firestore are configured for the current deployment. Deploy the app and its matching Firestore rules together from a tested revision. The final source requires a photo on new listings and supports completing an active reservation. The final desktop-width correction was released from staging revision `d7ecf5a`.
 
-## Implemented interface
-- Sign In, XU Email, verification preview, Home, Search/Browse, Item Details, Post Item, Reservation Confirmation, Saved Items, Profile, and My Posted Items.
-- Responsive layout, navigation, category filters, searchable sample listings, save/unsave, form validation, photo preview, demo reservation and mark-as-sold flows.
-- Navy/gold/white visual style based on Milestone 1 screens.
-- Local demo data and browser-local saved state; returning demo sessions can be restored.
-
-## Preview on your laptop
-Requires Python 3 (or another local static-file server).
-
-```bash
-python -m http.server 8080 -d www
+With the Firebase CLI installed and an authorized project account:
+```sh
+firebase login
+firebase deploy --only firestore:rules,hosting --project xuthriftexchange
 ```
 
-Visit **http://localhost:8080**. On Windows, you can also run `START_PREVIEW_WINDOWS.bat`. For a mobile preview, use your browser's device emulator.
+The app stores a compressed JPEG of up to 150,000 characters in the listing document. No Storage deployment, bucket upload or billing upgrade is needed. Existing listings can still be viewed. The feed fetches up to 100 public records and sorts the fetched records locally. Search combines a keyword (including course text) with a category. Availability refreshes on reads and after writes. Reload to see another student's changes. Bookmarks stay in this browser under the signed-in user's ID.
 
-## Android/Cordova preparation
-`www/` is the Cordova web root. With Node.js, a suitable JDK, Android Studio/SDK and Android build tools installed:
+## Tests
 
-```bash
-npm install
-npx cordova platform add android
-npx cordova build android
+`npm test` runs Node feature and auth/layout regressions with test doubles. The browser suite runs real UI code with local Auth and Firestore emulators, rule enforcement and synthetic Google identities. It exercises independent browser sessions, required photos, filtering, ownership, competing buyers, cancellation, seller completion, logout and viewport widths. It requires a fresh emulator database.
+
+1. Install Python Playwright (`python -m pip install playwright`, then `python -m playwright install chromium`). Install the Firebase CLI and Java for your emulator version.
+2. In one terminal serve `www` with `python -m http.server 8510 --bind 127.0.0.1 -d www`.
+3. In another terminal, from the repository root, run:
+```sh
+firebase emulators:exec --config firebase.test.json --project demo-xu --only auth,firestore "python tests/browser_emulators.py"
 ```
 
-A successful Cordova build normally creates a debug APK in `platforms/android/app/build/outputs/apk/debug/`. **This repository does not include an APK and Android packaging has not been verified.**
+The script saves unedited screenshots under `evidence/`. Optional environment variables: `CHROMIUM_PATH` for a Chromium executable, `XU_EVIDENCE_DIR` for the destination and `XU_SDK_DIR` for a local copy of the four SDK scripts named in index.html. Test configuration is supplied by Playwright and never enters the production site.
 
-## Important limitations
-- **Google Sign-In is a visual demo only**, not real Google OAuth.
-- **XU institutional account verification is simulated**. Email verification does not send real messages or prove ownership.
-- Listings, bookmarks, reservations, and session status are stored in browser localStorage for demonstrations only. They are not synchronized across devices or users.
-- No working backend, live database, online payments, courier integration, or in-app messaging. Seller Facebook/phone contact is the intended communication method.
-- Do not enter passwords or other real credentials in the demo.
-- Actual Google SSO requires a supported Android sign-in integration and university identity-policy confirmation.
+## Android
 
-## Project structure
+Install Node 22+, JDK 17, Android SDK Platform 35, Build Tools 35.0.0, platform-tools and Gradle 8.13. Set JAVA_HOME and ANDROID_HOME and put tools on PATH. From a fresh checkout:
 
-```
-config.xml               Cordova app metadata
-package.json             Development dependencies / scripts
-START_PREVIEW_WINDOWS.bat
-www/
-  index.html             Mobile UI document shell
-  css/styles.css         Responsive UI stylesheet
-  js/app.js              Screen routing and local demo interactions
-  assets/                Bundled sample item photos and XU icon
-  manifest.webmanifest
-  sw.js                  Basic static asset cache on localhost
+```sh
+npm ci
+npx cordova prepare android
+npx cordova requirements android
+npm run cordova:build-android
+adb install -r platforms/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-## Milestone 2 demonstration
-Sign in as demo user → Home → Search → Item Details → Save and Reserve → Saved → Sell/Post Item → Profile → My Posted Items → Mark Sold → Sign Out.
+The local Cordova plugin in `native/google-identity` calls Android Credential Manager. The explicit Google button requests an ID token for the project's public Web OAuth client ID in `config.xml`. The JS SDK exchanges it for a Firebase credential and uses the same account checks and Firestore session as the browser. No client secret belongs in the app.
 
-Next stage: connect real authentication and authorization, Firebase/Firestore/Storage, proper server-side reservation validation, and test on Android devices.
+Firebase Project settings list Android package `ph.edu.xu.thriftexchange.ui` and the supplied debug APK signing SHA-1 `B6:EB:58:73:AB:41:D1:4C:93:0C:DE:AC:95:54:D8:30:55:DF:9B:3C`. Obtain the fingerprint for any new build with `apksigner verify --print-certs PATH_TO_APK` and register a different signing key separately. The bridge reads the project's public Web client ID from Cordova preferences. The supplied debug APK was built and its signature verified, but installation and native Google sign-in remain untested without a Google Play services device. A production buyer-and-seller run also awaits a second consenting XU account and a controlled test item.
+
+## Contributions and branches
+
+| Member | Feature | Original evidence |
+|---|---|---|
+| Andrei Nacaya | Firebase, authentication and UI integration | 395cb54, 51ba469, ec5958a |
+| Dann Roa | Item listings and seller status | de76179, ca3b356 |
+| Denz Macasero | Search/filtering and reservations | a462cad, 59de4fc |
+
+Feature branches merge into `integration`, then `staging`. Promote staging to `main` through a release pull request after live verification. The Milestone 3 documents and Android testing notes describe earlier revisions.
