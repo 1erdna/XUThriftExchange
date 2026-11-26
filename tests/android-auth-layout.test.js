@@ -46,6 +46,8 @@ assert.match(css, /\.app-page\s*\{\s*top:\s*env\(safe-area-inset-top,\s*0px\)/);
 assert.match(css, /\.nav-item\s*\{[\s\S]*?flex:\s*1 1 0;[\s\S]*?min-width:\s*0;/);
 assert.match(css, /@media\s*\(max-width:\s*360px\)/);
 assert.match(css, /@media\s*\(max-height:\s*500px\)\s*and\s*\(orientation:\s*landscape\)/);
+assert.match(css, /\.preview-stage\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+assert.match(css, /\.phone-frame\s*\{[^}]*width:\s*100%;\s*max-width:\s*760px/);
 assert.match(
   fs.readFileSync(path.join(base,'index.html'),'utf8'),
   /name="viewport"\s+content="width=device-width, initial-scale=1, viewport-fit=cover"/

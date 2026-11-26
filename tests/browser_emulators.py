@@ -167,6 +167,7 @@ with sync_playwright() as pw:
     for width, height in [(320, 568), (360, 740), (412, 915), (844, 390), (1280, 800)]:
         buyer.set_viewport_size({"width": width, "height": height})
         assert buyer.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        assert buyer.evaluate("document.querySelector('.phone-frame').getBoundingClientRect().width >= Math.min(innerWidth, 320)")
         expect(buyer.locator("[data-action=reserve]")).to_be_visible()
     mark("viewport checks 320 360 412 844 1280")
     nav(s, "profile")

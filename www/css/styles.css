@@ -195,8 +195,8 @@ a{color:var(--blue)}
 }
 
 @media (min-width: 768px) and (hover: hover) {
-  .preview-stage { display: grid; min-height: 100dvh; padding: 0; place-items: center; }
-  .phone-frame { width: min(100%, 760px); height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+  .preview-stage { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100dvh; padding: 0; place-items: center; }
+  .phone-frame { width: 100%; max-width: 760px; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
   .app-shell { border-radius: 0; }
   .app-header-safe { display: none; }
   .app-page { top: 0; }
