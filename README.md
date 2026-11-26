@@ -4,11 +4,11 @@ A campus marketplace for second-hand books, uniforms, laboratory gowns and equip
 
 ## Run the web app
 
-Use [Firebase Hosting](https://xuthriftexchange.firebaseapp.com) in Chrome. For the source version, check out `staging`, run `npm run preview` with Python 3 on PATH and open http://localhost:8080. Google sign-in needs network access and an authorized origin in Firebase Authentication. Localhost may need to be added by a project administrator. The site uses the Firebase compat SDK from gstatic. If the backend cannot initialize, the sign-in screen offers a retry.
+Use [Firebase Hosting](https://xuthriftexchange.firebaseapp.com) in a current browser. The staging release and matching Firestore rules were deployed on 26 November 2026. A real XU account opened Home, and live keyword/category search returned matching and empty results. For the source version, check out `staging`, run `npm run preview` with Python 3 on PATH and open http://localhost:8080. Google sign-in needs network access and an authorized origin in Firebase Authentication. Localhost may need to be added by a project administrator. The site uses the Firebase compat SDK from gstatic. If the backend cannot initialize, the sign-in screen offers a retry.
 
 ## Firebase and release
 
-The public Web configuration lives in `www/js/firebase-config.js`. Project ID is `xuthriftexchange`. Enable Google in Authentication, check authorized domains and provision Cloud Firestore. Deploy the app and its matching Firestore rules together from the tested revision. The final source requires a photo on new listings and supports completing an active reservation. Earlier hosted revisions may behave differently.
+The public Web configuration lives in `www/js/firebase-config.js`. Project ID is `xuthriftexchange`. Google Authentication, authorized domains and Cloud Firestore are configured for the current deployment. Deploy the app and its matching Firestore rules together from a tested revision. The final source requires a photo on new listings and supports completing an active reservation. The final desktop-width correction was released from staging revision `d7ecf5a`.
 
 With the Firebase CLI installed and an authorized project account:
 ```sh
@@ -45,7 +45,7 @@ adb install -r platforms/android/app/build/outputs/apk/debug/app-debug.apk
 
 The local Cordova plugin in `native/google-identity` calls Android Credential Manager. The explicit Google button requests an ID token for the project's public Web OAuth client ID in `config.xml`. The JS SDK exchanges it for a Firebase credential and uses the same account checks and Firestore session as the browser. No client secret belongs in the app.
 
-In Firebase Project settings, register package `ph.edu.xu.thriftexchange.ui` with the SHA-1 for the certificate signing the installed APK. Obtain it using `apksigner verify --print-certs PATH_TO_APK`. Register each signing key separately. The project uses the Web SDK for Firebase, so the bridge reads its public Web client ID from Cordova preferences. Test on a Google Play services device with an eligible XU account, then a personal account. Android build and signature verification alone do not establish that production OAuth works.
+Firebase Project settings list Android package `ph.edu.xu.thriftexchange.ui` and the supplied debug APK signing SHA-1 `B6:EB:58:73:AB:41:D1:4C:93:0C:DE:AC:95:54:D8:30:55:DF:9B:3C`. Obtain the fingerprint for any new build with `apksigner verify --print-certs PATH_TO_APK` and register a different signing key separately. The bridge reads the project's public Web client ID from Cordova preferences. The supplied debug APK was built and its signature verified, but installation and native Google sign-in remain untested without a Google Play services device. A production buyer-and-seller run also awaits a second consenting XU account and a controlled test item.
 
 ## Contributions and branches
 
